@@ -1,0 +1,21 @@
+{
+  "name": "bubbles",
+  "version": "0.0.0",
+  "authors": [
+    "Ryan A. Muller <ryan.muller@novartis.com>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "~2.1.1",
+    "lodash": "~2.4.1",
+    "bacon": "~0.7.37",
+    "d3": "~3.4.13"
+  }
+}
