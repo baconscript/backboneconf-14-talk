@@ -73,6 +73,21 @@ There are a few functions that let you combine streams as well.
 
 > Describe `merge()`, `zip()`, and `combine()`. Also make *absolutely sure* that any functions used in the demo are described here beforehand.
 
+> Also describe `flatMap()`.
+
 ## Describe how to combine Bacon.js and Backbone to maximum effect, and
 
 ## Demonstrate the creation of a web-based chat app using Bacon.js and Backbone.
+
+-------------------------
+
+# Thoughts on the app structure
+
+When the presentation gets to the correct point, the server will generate a handful of fake users who will periodically type, send messages, and update their statuses.
+
+The server will run based on polling so we can demonstrate `flatMap()`. Yeah, it's contrived, but I want the example.
+
+* *GET* `/api/messages?since=<timestamp>` -- fetches messages sent to the server since the given time
+* *POST* `/api/message` `<message text>` -- post a message
+* *POST* `/api/typing` -- tell the server that the user is typing
+* *POST* `/api/status` `<status text>` -- update status
