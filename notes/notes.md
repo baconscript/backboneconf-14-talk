@@ -1,4 +1,5 @@
 > I want the talk to take inspiration from [Bret Victor](http://worrydream.com/#!/ExplorableExplanations).
+>
 > When I rewrite this, I want to get rid of _all_ the rhetorical questions, and then only re-add them if I can get them to sound really good. I tend to rely on them too much.
 
 # Functional Reactive Programming.
@@ -83,11 +84,13 @@ There are a few functions that let you combine streams as well.
 
 # Thoughts on the app structure
 
-When the presentation gets to the correct point, the server will generate a handful of fake users who will periodically type, send messages, and update their statuses.
+The server will generate a handful of fake users who will periodically join/leave, type, send messages, and update their statuses. 
+Chat content and statuses will be [some form of lorem ipsum](http://hipsum.co/?paras=80&type=hipster-latin).
 
 The server will run based on polling so we can demonstrate `flatMap()`. Yeah, it's contrived, but I want the example.
 
-* *GET* `/api/messages?since=<timestamp>` -- fetches messages sent to the server since the given time
-* *POST* `/api/message` `<message text>` -- post a message
-* *POST* `/api/typing` -- tell the server that the user is typing
-* *POST* `/api/status` `<status text>` -- update status
+* **GET** `/api/messages?since=<timestamp>` -- fetches messages sent to the server since the given time
+* **GET** `/api/user-events?since=<timestamp>` -- fetches user joins/leaves and statuses
+* **POST** `/api/message` `<message text>` -- post a message
+* **POST** `/api/typing` -- tell the server that the user is typing
+* **POST** `/api/status` `<status text>` -- update status
