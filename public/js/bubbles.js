@@ -3,7 +3,7 @@ function uuid(e){return e?(e^16*Math.random()>>e/4).toString(16):([1e7]+-1e3+-4e
 /**
  * @class Bacon.Observable
  * @method asBubbleStream
- * @param opt
+ * @param [opt]
  * @param [opt.element] jQuery element or selector to display the stream within
  * @param [opt.map] function to map each value to printable HTML
  * @param [opt.color] function to map each value to a color
@@ -12,9 +12,7 @@ function uuid(e){return e?(e^16*Math.random()>>e/4).toString(16):([1e7]+-1e3+-4e
  */
 Bacon.Observable.prototype.asBubbleStream = function(opt){
   var map, $element, color, code, $code, duration, stream = this, updates;
-  if(!opt){
-    throw new Error("You can't call showBubbleStream() without options. Sorry! Check the docs.");
-  }
+  opt = opt || {};
   if(opt.element){
     $element = $(opt.element).first();
   } else {
@@ -85,17 +83,16 @@ Bacon.Observable.prototype.asBubbleStream = function(opt){
   return $element;
 }
 
+function mapKeycodes(event){
+  return charFromKeycode(event.keyCode);
+}
+var keyup = $('body').asEventStream('keyup').map(mapKeycodes).name("keyup"),
+  throttled = keyup.throttle(1000);
 
-keystream = $('body').asEventStream('keyup').name("$('body').asEventStream('keyup')");
+$('body').append(keyup.asBubbleStream());
 
-$('body').append(keystream.asBubbleStream({
-  map: function(event){
-    return charFromKeycode(event.keyCode);
-  }
-}));
+$('body').append(throttled.asBubbleStream());
 
-$('body').append($('body').asEventStream('keydown').name("$('body').asEventStream('keydown')").asBubbleStream({
-  map: function(event){
-    return charFromKeycode(event.keyCode);
-  }
+$('body').append(keyup.slidingWindow(8).asBubbleStream({
+  map: function(list){return list.join('')}
 }));
