@@ -1,82 +1,101 @@
-var TIME_SCALE, UPDATE_INTERVAL, X, colors, counter, data, dx, keystream, t, tdx, tx, tx0, update, x;
+function uuid(e){return e?(e^16*Math.random()>>e/4).toString(16):([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,uuid)}
 
-counter = 0;
+/**
+ * @class Bacon.Observable
+ * @method asBubbleStream
+ * @param opt
+ * @param [opt.element] jQuery element or selector to display the stream within
+ * @param [opt.map] function to map each value to printable HTML
+ * @param [opt.color] function to map each value to a color
+ * @param [opt.duration] length of the timeline shown on-screen, default 10s
+ * @param [opt.code] code to display with the stream, may be a Bacon.Property
+ */
+Bacon.Observable.prototype.asBubbleStream = function(opt){
+  var map, $element, color, code, $code, duration, stream = this, updates;
+  if(!opt){
+    throw new Error("You can't call showBubbleStream() without options. Sorry! Check the docs.");
+  }
+  if(opt.element){
+    $element = $(opt.element).first();
+  } else {
+    $element = $('<div>');
+  }
 
-TIME_SCALE = 10e3;
-
-UPDATE_INTERVAL = 20;
-
-X = d3.scale.linear().domain([0, TIME_SCALE]).range([0, -$(window).width()]);
-
-x = function(d) {
-  var z;
-  return z = X(+new Date() - d.time) + 'px';
-};
-
-dx = function(d) {
-  var z;
-  return z = X(+new Date() + UPDATE_INTERVAL - d.time) + 'px';
-};
-
-t = function(s) {
-  return "translateX(" + s + ")";
-};
-
-tdx = function(d) {
-  return t(dx(d));
-};
-
-tx = function(d) {
-  return t(x(d));
-};
-
-tx0 = t('0px');
-
-colors = d3.scale.category10();
-
-console.log(colors);
-
-data = [];
-
-keystream = $('body').asEventStream('keyup').map('.which').map(function(k) {
-  return {
-    time: new Date(),
-    key: String.fromCharCode(k),
-    color: 'black',
-    bg: colors(k % 10),
-    id: counter++
+  map = opt.map || function(e){
+    return e.toString();
   };
-});
-
-keystream.map(function(x) {
-  return [x];
-}).scan([], '.concat').map(function(f) {
-  return f.filter(function(k) {
-    return (+new Date() - k.time) < TIME_SCALE;
+  color = opt.color || function(){
+    return '#dcdcdc';
+  };
+  duration = opt.duration || 10e3;
+  code = opt.code || this.toString();
+  if(code.constructor !== Bacon.Property && code.constructor !== Bacon.Observable){
+    code = Bacon.constant(code);
+  }
+  $element.addClass('stream');
+  $code = $('<code>');
+  $element.append($code);
+  code.onValue(function(code){
+    $code.text(code);
   });
-}).onValue(function(v) {
-  return data = v;
-});
-
-update = function() {
-  var bubbles, bubblesEnter;
-  bubbles = d3.select(".stream").selectAll(".bubble").data(data, function(d) {
-    return d.id;
+  updates = stream.mapError(function(err){
+    return {isError: true, err: err};
+  }).map(function(v){
+    var bg = color(v),
+      html = map(v),
+      id = uuid(),
+      generated = new Date();
+    return {
+      html: map(v),
+      background: bg,
+      id: id,
+      generated: new Date(),
+      isError: v.isError
+    };
   });
-  bubblesEnter = bubbles.enter().append('div');
-  bubblesEnter.classed('bubble', true).style('background-color', function(d) {
-    return d.bg;
-  }).style('color', function(d) {
-    return d.color;
-  }).style('right', '0').style('transform', tx0).style('-moz-transform', tx0).style('-webkit-transform', tx0);
-  bubblesEnter.append('span').text(function(d) {
-    return d.key;
+  updates.onValue(function(val){
+    var $div = $('<div>',{'data-id':val.id});
+    var $span = $('<span>');
+
+    if(val.isError){
+      $div.addClass('error');
+    } else {
+      $div.addClass('bubble');
+      $span.html(val.html);
+      $div.append($span);
+      $div.css({
+        'background-color': val.background
+      });
+    }
+    $div.css({
+      'left': '100%',
+      opacity: 1
+    }).animate({
+      left: '0%'
+    }, {duration:duration, easing: 'linear', done: function(){
+      $div.animate({
+        opacity: 0,
+        left: '-'+(500*100/duration)+'%'
+      }, {duration: 500, easing: 'linear', done: function(){
+        $div.remove();
+      }})
+    }});
+    $element.append($div);
   });
-  return bubbles.style('transform', tdx).style('-moz-transform', tdx).style('-webkit-transform', tdx);
-};
+  return $element;
+}
 
-update(startData);
 
-setInterval((function() {
-  return update(startData);
-}), UPDATE_INTERVAL);
+keystream = $('body').asEventStream('keyup').name("$('body').asEventStream('keyup')");
+
+$('body').append(keystream.asBubbleStream({
+  map: function(event){
+    return charFromKeycode(event.keyCode);
+  }
+}));
+
+$('body').append($('body').asEventStream('keydown').name("$('body').asEventStream('keydown')").asBubbleStream({
+  map: function(event){
+    return charFromKeycode(event.keyCode);
+  }
+}));
