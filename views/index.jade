@@ -1,6 +1,82 @@
 extends layout
 
 block content
+  .el
+    img(style='position:absolute;height:100%;z-index:100;', src='/img/waterfall1.gif')
+    h1 Go with the flow
+    h3 Backbone and Streams
+    div(style='height:20rem;') &nbsp;
+  .note
+    :markdown
+      The subject of my talk today is functional reactive programming, or FRP,
+      and how it can be combined with Backbone. Functional reactive programming
+      is one of two event paradigms to become popular in 2014. The other is 
+      called communicating sequential processes, or CSP, and is likely to be 
+      familiar to those of you who have played around with ECMAScript 6 or Go.
+      
+      In this talk, I will:
+      
+      * Briefly describe functional reactive programming
+      * Describe when you may or may not want to use FRP
+      * Introduce basic functional reactive programming concepts using Bacon.js
+      * Describe how to combine Bacon.js and Backbone to maximum effect, and
+      * Demonstrate the creation of a web-based chat app using Bacon.js and Backbone.
+  .note
+    :markdown
+      FRP, in essence, can be summed up in two words: *Immutable Streams*.
+      
+      What are those? Well, _streams_ are pretty straightforward: a stream
+      is a series of related events and errors that may terminate. Here's an
+      example:
+  .el: #key-stream
+  .note
+    :markdown
+      This is a stream composed of key presses, generated using an 
+      `asEventStream()` method that gets attached to jQuery objects when
+      you include Bacon.
+      
+      Events can wrap any JavaScript value: booleans, numbers, objects, and even
+      Bacon streams.
+  .el: #sample-error
+  .note
+    :markdown
+      Streams may also have errors in them. Let's suppose for a second that the
+      stream here represents a particularly unreliable weather API. The X's
+      represent AJAX errors, which you would want to handle differently in your
+      application. It's Bacon's try/catch.
+  .el: #sample-end
+  .note
+    :markdown
+      Finally, we have a stream here that emits a couple of values, then ends.
+      Once a stream has ended, it emits a special "end" event and nothing more.
+      
+      Now, I mentioned that these are immutable. You can't change a stream once
+      you've created it, but you can perform operations on streams to create
+      new streams. It's easier to think of Bacon as a realtime Underscore.js,
+      if you like.
+  .el
+    #weather-good
+    #weather-filter
+  .note
+    :markdown
+      Above you can see I took a stream and filtered it to create a slightly
+      nicer weather forecast. If it's colder than 41 degrees out, then I don't
+      want to know.
+  .el: #weather-map
+  .note
+    :markdown
+      Now we take that and format it slightly. We can take this stream and
+      update a `div` directly with it; Bacon's integration with jQuery means...
+  .el
+    code: pre.
+      weather.filter(t =&gt; (t &gt;= 41))
+        .map(t =&gt; t+"&amp;deg; F")
+        .assign($('#temp-display'),'html');
+    h3(style="float:right;position:absolute;top:0;right:0;padding-top:0;")#temp-display
+  .note
+    :markdown
+      ...we can directly update our `div`.
+  
   script(src='/js/vendor/jquery.js')
   script(src='/js/vendor/Bacon.js')
   script(src='/js/vendor/d3.js')

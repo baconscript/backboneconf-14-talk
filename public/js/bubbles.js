@@ -20,7 +20,7 @@ Bacon.Observable.prototype.asBubbleStream = function(opt){
   }
 
   map = opt.map || function(e){
-    return e.toString();
+    return e? e.toString():'';
   };
   color = opt.color || function(){
     return '#dcdcdc';
@@ -38,7 +38,8 @@ Bacon.Observable.prototype.asBubbleStream = function(opt){
   });
   updates = stream.mapError(function(err){
     return {isError: true, err: err};
-  }).map(function(v){
+  }).mapEnd(function(){return {isEnd:true}}).map(function(v){
+    v = v || {};
     var bg = color(v),
       html = map(v),
       id = uuid(),
@@ -48,7 +49,8 @@ Bacon.Observable.prototype.asBubbleStream = function(opt){
       background: bg,
       id: id,
       generated: new Date(),
-      isError: v.isError
+      isError: v.isError,
+      isEnd: v.isEnd
     };
   });
   updates.onValue(function(val){
@@ -57,6 +59,8 @@ Bacon.Observable.prototype.asBubbleStream = function(opt){
 
     if(val.isError){
       $div.addClass('error');
+    } else if(val.isEnd){
+      $div.addClass('end');
     } else {
       $div.addClass('bubble');
       $span.html(val.html);
@@ -71,6 +75,9 @@ Bacon.Observable.prototype.asBubbleStream = function(opt){
     }).animate({
       left: '0%'
     }, {duration:duration, easing: 'linear', done: function(){
+      if(val.isEnd){
+        return;
+      }
       $div.animate({
         opacity: 0,
         left: '-'+(500*100/duration)+'%'
@@ -86,13 +93,45 @@ Bacon.Observable.prototype.asBubbleStream = function(opt){
 function mapKeycodes(event){
   return charFromKeycode(event.keyCode);
 }
-var keyup = $('body').asEventStream('keyup').map(mapKeycodes).name("keyup"),
-  throttled = keyup.throttle(1000);
 
-$('body').append(keyup.asBubbleStream());
+function weatherBinder(chance){
+  chance = chance || 0;
+  return function(sink){
+    var running = true;
+    function pushEvent(){
+      if(Math.random()<chance){
+        sink(new Bacon.Error());
+      }else {
+        sink(Math.round((Math.random()*5+38)*10)/10);
+      }
+      if(running){
+        setTimeout(pushEvent, Math.random()*1000+1000);
+      }
+    }
+    setTimeout(pushEvent,Math.random()*500);
+    return function(){
+      running = false;
+    }
+  }
+}
 
-$('body').append(throttled.asBubbleStream());
+var keyup = $('body').asEventStream('keyup').map(mapKeycodes).merge(Bacon.once(new Bacon.Error()).delay(1000)).name("keyup"),
+  keys11 = keyup.slidingWindow(11).map(x => x.join('')).withDescription(keyup, 'map', 'x => x.join("")'),
+  konami = keys11.filter(x => x === '↑↑↓↓←→←→ba↩').withDescription(keys11, 'filter', "x => x === '↑↑↓↓←→←→ba↩'"),
+  weather = Bacon.fromBinder(weatherBinder(0.3)).name('weather'),
+  weather3 = Bacon.fromBinder(weatherBinder()).name('weather').take(3),
+  weatherGood = Bacon.fromBinder(weatherBinder()).name('weather'),
+  weatherFilter = weatherGood.filter(t => t>41)
+    .withDescription(weather,'filter',"t => (t >= 41)"),
+  weatherMap = weatherFilter.map(t => t+"&deg; F")
+    .withDescription(weatherFilter,'map','t => t+"&deg; F"');
 
-$('body').append(keyup.slidingWindow(8).asBubbleStream({
-  map: function(list){return list.join('')}
-}));
+$body = $('body');
+
+keyup.asBubbleStream({element:'#key-stream'});
+weather.asBubbleStream({element:'#sample-error'});
+weather3.asBubbleStream({element:'#sample-end'});
+weatherGood.asBubbleStream({element:'#weather-good'});
+weatherFilter.asBubbleStream({element:'#weather-filter'});
+weatherMap.asBubbleStream({element:'#weather-map'});
+weatherMap.assign($('#temp-display'),'html');

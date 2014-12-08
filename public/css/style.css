@@ -1,11 +1,43 @@
-@import url(http://fonts.googleapis.com/css?family=Roboto:400,700|Noto+Sans:400,700|Inconsolata);
-
+@import url(http://fonts.googleapis.com/css?family=Roboto:400,700|News+Cycle:400,700|Droid+Serif:400,700|Ineconsolata);
+html{
+  font-size: 24px;
+}
 body{
-  font-family: "Roboto";
+  font-family: "Roboto", Helvetica, Arial, sans-serif;
   background-color: white;
+  padding: 0.3rem 1rem;
+}
+h1, h2, h3, h4, h5, h6{
+  font-family: "Droid Serif", serif;
+  margin-bottom: 10px;
+  margin-top: 10px;
+  text-align: right;
+}
+h1 {
+  font-size: 7rem;
+}
+h2 {
+  font-size: 6rem;
+}
+h3 {
+  font-size: 5rem;
+}
+h4 {
+  font-size: 4rem;
+}
+h5 {
+  font-size: 3.5rem;
+}
+h1+div, h2+div, h3+div, h4+div, h5+div, h6+div,
+h1+p,   h2+p,   h3+p,   h4+p,   h5+p,   h6+p {
+  margin-top: 2rem;
+}
+.el {
+  display: block;
+  position: relative;
 }
 code, pre, tt{
-  font-family: "Inconsolata";
+  font-family: "Inconsolata", "Input Mono Condensed", monospace;
 }
 .stream code{
   position: absolute;
@@ -14,7 +46,7 @@ code, pre, tt{
 }
 .stream {
   width: 100%;
-  height: 70px;
+  height: 100px;
   position: relative;
   overflow: hidden;
 }
@@ -41,33 +73,39 @@ code, pre, tt{
 }
 .bubble:not(.error){
   position: absolute;
-  height: 40px;
-  min-width: 40px;
-  line-height: 40px;
+  height: 50px;
+  min-width: 50px;
+  font-size: 30px;
+  line-height: 50px;
   text-align: center;
-  top: 15px;
+  top: 25px;
   background-color: #dcdcdc;
   border: 1px solid black;
   border-radius: 25px;
   z-index: 30;
   box-shadow: 2px 2px 2px rgba(128,128,128,0.5);
 }
+.note{
+  opacity: 0.2;
+}
 .bubble span{
   padding: 0px 8px;
 }
-.stop {
+.end {
   position: absolute;
-  top: 15px;
-  bottom: 15px;
-  right: 0;
-  border-right: 1px solid black;
+  top: 25px;
+  bottom: 25px;
+  border-left: 1px solid black;
+  width: 2000px;
+  background-color: white;
   z-index: 30;
+  transform: translateX(100px);
 }
 
 .error {
   color: #F02311;
   position: absolute;
-  top: 10px;
+  top: 25px;
   height: 50px;
   line-height: 50px;
   font-size: 30px;
@@ -75,7 +113,7 @@ code, pre, tt{
   text-shadow: 2px 2px 2px rgba(128,128,128,0.5);
 }
 .error span{
-  display: none;z
+  display: none;
 }
 .error:before{
   content:"\2717";

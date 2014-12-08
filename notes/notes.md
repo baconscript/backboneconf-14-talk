@@ -2,11 +2,9 @@
 >
 > When I rewrite this, I want to get rid of _all_ the rhetorical questions, and then only re-add them if I can get them to sound really good. I tend to rely on them too much.
 
-# Functional Reactive Programming.
+Hello everyone, and thank you for coming. My name is Ryan Muller, and I'm a software engineer at Novartis Institutes for Biomedical Research. I'm a front-end developer who builds products that make it easier for research scientists to do their jobs.
 
-What is it? Well, obviously it's got "Functional Programming" right in the name, which I'm sure at least some of you have strong opinions about. Functional programming can have a bit of an academic feel to it, especially if you've read any technical articles on Lisp, or have done pretty much anything in Haskell. In addition, for most of computing history, procedural programming has been the _de facto_ norm. If you're accustomed to working in Java or Assembly, writing a program with immutable variables can feel like conducting a symphony with your hands tied.
-
-However, it's 2014, and real-time apps have a lot to benefit from functional programming.
+The subject of my talk today is functional reactive programming, or FRP, and how it can be combined with Backbone. Functional reactive programming is one of two event paradigms to become popular in 2014. The other is called communicating sequential processes or CSP, and is likely to be familiar to those of you who have played around with ECMAScript 6 or Go.
 
 In this talk, I will:
 
@@ -23,6 +21,8 @@ FRP, in essence, can be summed up in two words: *Immutable Streams*.
 What are those? Well, _streams_ are pretty straightforward: a stream is a series of related events and errors that may terminate. Here's an example:
 
     --a---b-c---d--------->
+
+An event can hold any JavaScript object: boolean, string, number, or something more complex.
 
 > Maybe it should be something with a more straightforward concept of "error" and "end" than keyboard events. I'll think about it.
 
@@ -70,7 +70,7 @@ The other is called `reduce` and only emits the final value, at stream exit.
     vvvvvvv   .reduce(+)   vvvvvvvvvv
     ----------------------------10-|
 
-There are a few functions that let you combine streams as well. 
+There are a few functions that let you combine streams as well.
 
 > Describe `merge()`, `zip()`, and `combine()`. Also make *absolutely sure* that any functions used in the demo are described here beforehand.
 
@@ -84,7 +84,7 @@ There are a few functions that let you combine streams as well.
 
 # Thoughts on the app structure
 
-The server will generate a handful of fake users who will periodically join/leave, type, send messages, and update their statuses. 
+The server will generate a handful of fake users who will periodically join/leave, type, send messages, and update their statuses.
 Chat content and statuses will be [some form of lorem ipsum](http://hipsum.co/?paras=80&type=hipster-latin).
 
 The server will run based on polling so we can demonstrate `flatMap()`. Yeah, it's contrived, but I want the example.
