@@ -3,9 +3,10 @@ extends layout
 block content
   .el
     img(style='position:absolute;height:100%;z-index:100;', src='/img/waterfall1.gif')
+    img(style='float:left;display:hidden;', src='/img/waterfall1.gif')  
     h1 Go with the flow
     h3 Backbone and Streams
-    div(style='height:20rem;') &nbsp;
+    div(style='height:8rem;') &nbsp;
   .note
     :markdown
       The subject of my talk today is functional reactive programming, or FRP,
@@ -43,7 +44,8 @@ block content
       Streams may also have errors in them. Let's suppose for a second that the
       stream here represents a particularly unreliable weather API. The X's
       represent AJAX errors, which you would want to handle differently in your
-      application. It's Bacon's try/catch.
+      application. It's Bacon's try/catch. If you're used to promises, just think
+      of a stream as a promise that can resolve more than once.
   .el: #sample-end
   .note
     :markdown
@@ -56,17 +58,23 @@ block content
       if you like.
   .el
     #weather-good
+  .note
+    :markdown
+      So here we've got another weather report stream. Really this is all just random numbers, but
+      suppose for a minute.
+  .el
     #weather-filter
   .note
     :markdown
-      Above you can see I took a stream and filtered it to create a slightly
+      Now I've taken it and filtered it to create a slightly
       nicer weather forecast. If it's colder than 41 degrees out, then I don't
-      want to know.
+      want to know. Our original stream hasn't been altered at all, we've just created 
+      a new one with the information we're interested in.
   .el: #weather-map
   .note
     :markdown
       Now we take that and format it slightly. We can take this stream and
-      update a `div` directly with it; Bacon's integration with jQuery means...
+      update a `div` directly with it; Bacon's API gives us...
   .el
     code: pre.
       weather.filter(t =&gt; (t &gt;= 41))
@@ -75,7 +83,23 @@ block content
     h3(style="float:right;position:absolute;top:0;right:0;padding-top:0;")#temp-display
   .note
     :markdown
-      ...we can directly update our `div`.
+      ...an easy way to directly update our `div`.
+      
+      Bacon also provides us with a couple of ways to combine events from multiple streams.
+  .el
+    #merge-ex1
+    #merge-ex2
+    #merge-ex3
+  .note
+    :markdown
+      There's `merge()`, which grabs events from both streams...
+  .el
+    #combine-ex1
+    #combine-ex2
+    #combine-ex3
+  .note
+    :markdown
+      ...`combine()`, which lets us combine streams with a custom function...
   
   script(src='/js/vendor/jquery.js')
   script(src='/js/vendor/Bacon.js')

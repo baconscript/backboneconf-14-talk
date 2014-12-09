@@ -19,6 +19,9 @@
     "shelljs": "~0.3.0",
     "socket.io": "^1.2.1",
     "static-favicon": "~1.0.0",
-    "marked": "~0.3.2"
+    "marked": "~0.3.2",
+    "baconipsum": "~0.1.2",
+    "random-weighted-choice": "~0.1.1",
+    "lodash": "~2.4.1"
   }
 }

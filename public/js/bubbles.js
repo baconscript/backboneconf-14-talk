@@ -54,7 +54,7 @@ Bacon.Observable.prototype.asBubbleStream = function(opt){
     };
   });
   updates.onValue(function(val){
-    var $div = $('<div>',{'data-id':val.id});
+    var $div = $('<div>',{'data-id':val.id,'class':'out'});
     var $span = $('<span>');
 
     if(val.isError){
@@ -69,6 +69,9 @@ Bacon.Observable.prototype.asBubbleStream = function(opt){
         'background-color': val.background
       });
     }
+    setTimeout(function(){
+      $div.removeClass('out');
+    },1);
     $div.css({
       'left': '100%',
       opacity: 1
@@ -115,7 +118,7 @@ function weatherBinder(chance){
   }
 }
 
-var keyup = $('body').asEventStream('keyup').map(mapKeycodes).merge(Bacon.once(new Bacon.Error()).delay(1000)).name("keyup"),
+var keyup = $('body').asEventStream('keyup').map(mapKeycodes).name("keyup"),
   keys11 = keyup.slidingWindow(11).map(x => x.join('')).withDescription(keyup, 'map', 'x => x.join("")'),
   konami = keys11.filter(x => x === '↑↑↓↓←→←→ba↩').withDescription(keys11, 'filter', "x => x === '↑↑↓↓←→←→ba↩'"),
   weather = Bacon.fromBinder(weatherBinder(0.3)).name('weather'),
@@ -124,7 +127,10 @@ var keyup = $('body').asEventStream('keyup').map(mapKeycodes).merge(Bacon.once(n
   weatherFilter = weatherGood.filter(t => t>41)
     .withDescription(weather,'filter',"t => (t >= 41)"),
   weatherMap = weatherFilter.map(t => t+"&deg; F")
-    .withDescription(weatherFilter,'map','t => t+"&deg; F"');
+    .withDescription(weatherFilter,'map','t => t+"&deg; F"'),
+  mergeA = Bacon.interval(400,'sss').delay(200).name('sound1'),
+  mergeB = Bacon.repeatedly(400,['bm','k']).name('sound2'),
+  mergeAB = mergeA.merge(mergeB);
 
 $body = $('body');
 
@@ -135,3 +141,6 @@ weatherGood.asBubbleStream({element:'#weather-good'});
 weatherFilter.asBubbleStream({element:'#weather-filter'});
 weatherMap.asBubbleStream({element:'#weather-map'});
 weatherMap.assign($('#temp-display'),'html');
+mergeA.asBubbleStream({element:'#merge-ex1',duration:5e3});
+mergeB.asBubbleStream({element:'#merge-ex2',duration:5e3});
+mergeAB.asBubbleStream({element:'#merge-ex3',duration:5e3});

@@ -21,6 +21,15 @@ function charFromKeycode(k){
     case 40: return '↓'; //down-arr
     case 45: return 'ins';//insert
     case 46: return '⌦'; //delete
+    case 188: return ',';
+    case 190: return '.';
+    case 32: return ' ';
+    case 192: return '$';
+    case 191: return '/';
+    case 186: return ';';
+    case 222: return "'";
+    case 220: return '\\';
+    case 221: return '@';
     case 91:
     case 92:
       return '⌘'; // super, command, or windows
@@ -38,5 +47,6 @@ function charFromKeycode(k){
         // function keys F1 - F12
         return 'F'+(k-111);
       }
+      return k;
   }
 }
