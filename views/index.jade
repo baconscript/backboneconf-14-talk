@@ -1,17 +1,21 @@
 extends layout
 
 block content
-  .el
+  .el.title-slide(data-body-class="dark")
     img(style='position:absolute;height:100%;z-index:100;', src='/img/waterfall1.gif')
-    img(style='float:left;display:hidden;', src='/img/waterfall1.gif')  
+    img(style='float:left;visibility:hidden;', src='/img/waterfall1.gif')  
     h1 Go with the flow
     h3: em Backbone and Streams
     div(style='height:8rem;') &nbsp;
   .note
     :markdown
+      Ladies and gentlemen, thank you all for coming. My name is Ryan Muller, and
+      I'm a software engineer at Novartis Institutes for Biomedical Research. I
+      write software to support the research scientists in their work.
+
       The subject of my talk today is functional reactive programming, or FRP,
       and how it can be combined with Backbone. Functional reactive programming
-      is one of two event paradigms to become popular in 2014. The other is 
+      is one of two event paradigms that's becoming more popular. The other is 
       called communicating sequential processes, or CSP, and is likely to be 
       familiar to those of you who have played around with ECMAScript 6 or Go.
       
@@ -23,6 +27,11 @@ block content
       * Describe how to combine Bacon.js and Backbone to maximum effect (paradigms),
       * Describe a couple of pitfalls that can occur when doing this, and
       * Demonstrate the creation of a web-based chat app using Bacon.js and Backbone.
+  .el(data-body-class="dark")
+    h3
+      :markdown
+        A _stream_ is a series of related **events** and **errors** that **may terminate**,
+        that may not be modified after creation.
   .note
     :markdown
       FRP, in essence, can be summed up in two words: *Immutable Streams*.
@@ -31,7 +40,14 @@ block content
       is a series of related events and errors that may terminate. Depending on your
       library of choice, a stream may be called a Signal or an Observable. Here's an
       example:
-  .el: #key-stream
+  .el
+    #key-stream
+    .el#sample-error
+    .el
+      #sample-end
+      script(data-when="enter", type='x/on-slide').
+        var weather3 = Bacon.fromBinder(weatherBinder()).name('weather').take(3);
+        weather3.asBubbleStream({element:'#sample-end'});
   .note
     :markdown
       This is a stream composed of key presses, generated using an 
@@ -40,7 +56,6 @@ block content
       
       Events can wrap any JavaScript value: booleans, numbers, objects, and even
       Bacon streams.
-  .el: #sample-error
   .note
     :markdown
       Streams may also have errors in them. Let's suppose for a second that the
@@ -48,7 +63,6 @@ block content
       represent AJAX errors, which you would want to handle differently in your
       application. It's Bacon's try/catch. If you're used to promises, just think
       of a stream as a promise that can resolve more than once.
-  .el: #sample-end
   .note
     :markdown
       Finally, we have a stream here that emits a couple of values, then ends.
@@ -60,29 +74,29 @@ block content
       if you like.
   .el
     #weather-good
+    .el#weather-filter
+    .el#weather-map
+      
+    .el
+      code: pre.
+        weather.filter(t =&gt; (t &gt;= 41))
+          .map(t =&gt; t+"&amp;deg; F")
+          .assign($('#temp-display'),'html');
+      h3(style="float:right;position:absolute;top:-0.5rem;right:0;padding-top:0;")#temp-display
   .note
     :markdown
       So here we've got another weather report stream. Really this is all just random numbers, but
       suppose for a minute.
-  .el
-    #weather-filter
   .note
     :markdown
       Now I've taken it and filtered it to create a slightly
       nicer weather forecast. If it's colder than 41 degrees out, then I don't
       want to know. Our original stream hasn't been altered at all, we've just created 
       a new one with the information we're interested in.
-  .el: #weather-map
   .note
     :markdown
       Now we take that and format it slightly. We can take this stream and
       update a `div` directly with it; Bacon's API gives us...
-  .el
-    code: pre.
-      weather.filter(t =&gt; (t &gt;= 41))
-        .map(t =&gt; t+"&amp;deg; F")
-        .assign($('#temp-display'),'html');
-    h3(style="float:right;position:absolute;top:0;right:0;padding-top:0;")#temp-display
   .note
     :markdown
       ...an easy way to directly update our `div`.
@@ -90,15 +104,15 @@ block content
       Bacon also provides us with a couple of ways to combine events from multiple streams.
   .el
     #merge-ex1
-    #merge-ex2
-    #merge-ex3
+    .el#merge-ex2
+    .el#merge-ex3
   .note
     :markdown
       There's `merge()`, which grabs events from both streams...
   .el
     #combine-ex1
-    #combine-ex2
-    #combine-ex3
+    .el#combine-ex2
+    .el#combine-ex3
   .note
     :markdown
       ...`combine()`, which lets us combine streams with a custom function...
@@ -223,3 +237,4 @@ block content
   script(src='/js/vendor/d3.js')
   script(src='/js/keychar.js')
   script(src='/js/bubbles.js')
+  script(src='/js/prez.js')

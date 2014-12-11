@@ -30,6 +30,7 @@ Bacon.Observable.prototype.asBubbleStream = function(opt){
   if(code.constructor !== Bacon.Property && code.constructor !== Bacon.Observable){
     code = Bacon.constant(code);
   }
+  $element.html('');
   $element.addClass('stream');
   $code = $('<code>');
   $element.append($code);
@@ -136,7 +137,6 @@ $body = $('body');
 
 keyup.asBubbleStream({element:'#key-stream'});
 weather.asBubbleStream({element:'#sample-error'});
-weather3.asBubbleStream({element:'#sample-end'});
 weatherGood.asBubbleStream({element:'#weather-good'});
 weatherFilter.asBubbleStream({element:'#weather-filter'});
 weatherMap.asBubbleStream({element:'#weather-map'});
