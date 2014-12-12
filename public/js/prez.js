@@ -14,7 +14,7 @@
 
   function runExitScript(){
     var $s = $currentSlide;
-    var $exitScript = $s.children('[data-when="exit"]');
+    var $exitScript = $s.children('script[type="x/on-exit"]');
     if($exitScript.length) {
       eval($exitScript.first().html());
     }
@@ -23,7 +23,7 @@
 
   function runEntryScript(){
     var $s = $currentSlide;
-    var $enterScript = $s.children('[data-when="enter"]');
+    var $enterScript = $s.children('script[type="x/on-enter"]');
     if($enterScript.length){
       eval($enterScript.first().html());
     }
@@ -39,6 +39,7 @@
     if(currentSlide >= $slides.length){
       currentSlide = $slides.length;
       $('body').addClass('dark');
+      $('.shows-over').fadeIn();
       return;
     }
     $currentSlide = $($slides[currentSlide]);
@@ -50,7 +51,7 @@
     if($e.length) {
       var $t = $e.first();
       $t.slideDown();
-      var $enterScript = $t.children('[data-when="enter"]');
+      var $enterScript = $t.children('script[type="x/on-enter"]');
       if($enterScript.length){
         eval($enterScript.first().html());
       }
@@ -66,6 +67,7 @@
     currentSlide--;
     console.log('Retreating to slide '+currentSlide);
     $currentSlide = $($slides[currentSlide]);
+    $('.shows-over').hide();
     runEntryScript();
   }
 
@@ -74,7 +76,7 @@
     if($e.length) {
       $e.last().slideUp();
       $e.last().each(function(){
-        var $exitScript = $(this).children('[data-when="exit"]');
+        var $exitScript = $(this).children('script[type="x/on-exit"]');
         if($exitScript.length) {
           eval($exitScript.first().html());
         }

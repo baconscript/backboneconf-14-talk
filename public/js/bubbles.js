@@ -141,6 +141,13 @@ weatherGood.asBubbleStream({element:'#weather-good'});
 weatherFilter.asBubbleStream({element:'#weather-filter'});
 weatherMap.asBubbleStream({element:'#weather-map'});
 weatherMap.assign($('#temp-display'),'html');
-mergeA.asBubbleStream({element:'#merge-ex1',duration:5e3});
-mergeB.asBubbleStream({element:'#merge-ex2',duration:5e3});
-mergeAB.asBubbleStream({element:'#merge-ex3',duration:5e3});
+function showMergeExample(){
+  mergeA.asBubbleStream({element:'#merge-ex1',duration:5e3});
+  mergeB.asBubbleStream({element:'#merge-ex2',duration:5e3});
+  mergeAB.asBubbleStream({element:'#merge-ex3',duration:5e3});
+}
+function hideMergeExample(){
+  $('#merge-ex1').html('');
+  $('#merge-ex2').html('');
+  $('#merge-ex3').html('');
+}

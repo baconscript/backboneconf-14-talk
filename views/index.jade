@@ -45,7 +45,7 @@ block content
     .el#sample-error
     .el
       #sample-end
-      script(data-when="enter", type='x/on-slide').
+      script(type='x/on-enter').
         var weather3 = Bacon.fromBinder(weatherBinder()).name('weather').take(3);
         weather3.asBubbleStream({element:'#sample-end'});
   .note
@@ -103,6 +103,9 @@ block content
       
       Bacon also provides us with a couple of ways to combine events from multiple streams.
   .el
+    h5: code .merge()
+    script(type='x/on-enter') showMergeExample();
+    script(type='x/on-exit') hideMergeExample();
     #merge-ex1
     .el#merge-ex2
     .el#merge-ex3
@@ -110,6 +113,7 @@ block content
     :markdown
       There's `merge()`, which grabs events from both streams...
   .el
+    h5: code .combine()
     #combine-ex1
     .el#combine-ex2
     .el#combine-ex3
@@ -128,15 +132,18 @@ block content
       event is itself a stream, and puts all the values from all the streams it sees onto
       a single stream. Here's an example.
   .el
+    h5: code .flatMap()
     #flatmap-ex-urls
+    .el
+      #flatmap-ex-ajax-streams
+    .el
+      #flatmap-ex-ajax-flat
   .note
     :markdown
        For instance, suppose we're getting URLs somehow---user input, some automated event
        perhaps, it doesn't matter. One thing that's nice about Bacon is that you don't care
        where your events come from; as long as they're of the type you're expecting, your
        application will just work.
-  .el
-    #flatmap-ex-ajax-streams
   .note
     :markdown
       We take these, and we map each URL to an AJAX call. An AJAX call is a perfect example
@@ -146,8 +153,6 @@ block content
       You can see here that each URL has been mapped to a stream. I've just drawn the AJAX
       streams as arrows here, since it would get way out of control if I tried to actually
       make and animate streams within the events.
-  .el
-    #flatmap-ex-ajax-flat
   .note
     :markdown
       Finally, we use `flatMap` to take all our replies and flatten them into one stream.
@@ -156,12 +161,14 @@ block content
       
       You can also perform a bit of time-traveling with events.
   .el
+    h5: code .delay()
     #example-delay-1
     #example-delay-2
   .note
     :markdown
       The `delay()` function delays each event.
   .el
+    h5: code .throttle()
     #example-throttle-1
     #example-throttle-2
   .note
@@ -171,6 +178,7 @@ block content
       updating server state on an action that could potentially happen quite rapidly.
       You're not interested in every event that's happening, so it's ok to drop a few.
   .el
+    h5: code .bufferingThrottle()
     #example-buff-throttle-1
     #example-buff-throttle-2
   .note
@@ -207,14 +215,17 @@ block content
       there are nearly infinite ways to use Backbone by itself.
   .el
     #model-stream
+      h3 model stream example
+    .el#model-event-stream
+      h3 model event stream example
+    .el#model-event-field-stream
+      h3 model event field stream example
   .note
     :markdown
       One of the simplest is to use a stream of models to update a View. This is really nice
       when you have a very simple model, such as a model that knows about temperature and
       cloud cover, for example. However, if they all fundamentally represent the same thing,
       you might want to consider...
-  .el
-    #model-event-stream
   .note
     :markdown
       ...using one model, and passing events to your View. This is another dead-simple model,
@@ -227,14 +238,30 @@ block content
       selection and only update a particular portion of your view. You can replace that with
       this:
   .el: code: pre.
-    model.asEventStream('change').onValue(=> view.render(model.toJSON()))
+    model.asEventStream('change').onValue(=&gt; view.render(model.toJSON()))
   .note
     :markdown
+      Or, to have even more control over what you render, you could go one level deeper and
+      capture only the changes on a particular field:
+  .el: code: pre.
+    model.asEventStream('change:name').onValue(=&gt; view.$('.name').text(model.get('name')))
+  .el
+    h2 Chat server API
+    p
+      :markdown
+        * **GET** `/api/messages?since=<timestamp>` -- fetches messages sent to the server since the given time
+        * **GET** `/api/user-events?since=<timestamp>` -- fetches user joins/leaves and statuses
+        * **POST** `/api/message` `<message text>` -- post a message
+        * **POST** `/api/typing` -- tell the server that the user is typing
+        * **POST** `/api/status` `<status text>` -- update status
+        
+  .shows-over End of presentation.
       
   
   script(src='/js/vendor/jquery.js')
   script(src='/js/vendor/Bacon.js')
-  script(src='/js/vendor/d3.js')
+  script(src='/js/vendor/underscore.js')
+  script(src='/js/vendor/backbone.js')
   script(src='/js/keychar.js')
   script(src='/js/bubbles.js')
   script(src='/js/prez.js')
