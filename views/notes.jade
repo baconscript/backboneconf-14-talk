@@ -1,17 +1,22 @@
 extends layout
 
 block content
-  #note waiting
+  #note(style='font-size: 1.3rem; padding-bottom: 4rem;') waiting
   .ui.modal#settings
     .header Settings
-    .content
-      .2.huge.fluid.ui.buttons
+    .content: .ui.form
+      .field: .2.huge.fluid.ui.buttons
         a.blue.ui.button#font-dn - Font
         a.teal.ui.button#font-up + Font
+      .field: .3.fluid.ui.buttons
+        a.blue.ui.button#reset-timer Reset timer
+        a.red.ui.button#refresh Refresh
+        a.purple.ui.button#restart Start over
     .actions
       a.positive.ui.button#done Done
   .large.bottom.fixed.ui.menu
     a.red.ui.item#back Back
+    a.item#timer 0:00
     a.item#settings-btn Settings
     .right.menu
       a.green.ui.item#next Next

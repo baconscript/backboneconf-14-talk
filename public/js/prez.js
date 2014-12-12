@@ -1,11 +1,19 @@
 ;(function(){
   var $body = $('body');
   var $slides = window.$slides = $body.children('.el');
-  var currentSlide = 0;
+  var currentSlide = (function(){
+    var sl = document.location.hash.match(/\d+/);
+    if(sl){
+      return +sl;
+    }
+    return 0;
+  })();
   var $currentSlide = $($slides[currentSlide]);
-  var keyup = $('body').asEventStream('keyup').map(x => x.which);
 
   var socket = io.connect(document.location.origin);
+
+  var keyup = window.keyup = $('body').asEventStream('keyup').map(x => x.which)
+    .merge(Bacon.fromEventTarget(socket, 'keyup'));
 
   keyup.filter(function(x){return x===39 || x===40})
     .merge(Bacon.fromEventTarget(socket, 'next')).log()
@@ -21,8 +29,16 @@
       $('html').css('font-size', size+'px');
     });
 
+  Bacon.fromEventTarget(socket, 'refresh').onValue(function(){
+    document.location.reload();
+  });
+  Bacon.fromEventTarget(socket, 'restart').onValue(function(){
+    document.location.hash = '#0';
+    document.location.reload();
+  });
+
   $('.el').hide();
-  runEntryScript();
+  setTimeout(runEntryScript, 1000);
 
   function runExitScript(){
     var $s = $currentSlide;
@@ -46,6 +62,9 @@
     if($note.length){
       socket.emit('note',{note:$note.first().html()});
     }
+    if(history.pushState){
+      history.pushState(null, null, '#'+currentSlide);
+    }
   }
 
   function advanceSlide(){
@@ -62,13 +81,17 @@
   }
 
   function advanceSubslide(){
-    var $e = $currentSlide.children('.el:not(:visible)')
+    var $e = $currentSlide.find('.el:not(:visible)')
     if($e.length) {
-      var $t = $e.first();
-      $t.slideDown();
-      var $enterScript = $t.children('script[type="x/on-enter"]');
+      var $el = $e.first();
+      $el.slideDown();
+      var $enterScript = $el.children('script[type="x/on-enter"]');
       if($enterScript.length){
         eval($enterScript.first().html());
+      }
+      var $note = $el.children('.note');
+      if($note.length){
+        socket.emit('note',{note:$note.first().html()});
       }
     } else {
       advanceSlide();
@@ -86,7 +109,7 @@
   }
 
   function retreatSubslide(){
-    var $e = $currentSlide.children('.el:visible');
+    var $e = $currentSlide.find('.el:visible');
     if($e.length) {
       $e.last().slideUp();
       $e.last().each(function(){

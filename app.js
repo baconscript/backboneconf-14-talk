@@ -144,6 +144,16 @@ io.on('connection', function(socket){
   socket.on('font-size', function(delta){
     io.emit('font-size', delta);
   });
+  socket.on('refresh', function(){
+    io.emit('refresh');
+  });
+
+  socket.on('keyup', function(code){
+    io.emit('keyup', code);
+  });
+  socket.on('restart', function(){
+    io.emit('restart');
+  });
 });
 
 /// catch 404 and forward to error handler

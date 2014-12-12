@@ -1,12 +1,13 @@
 @import url(http://fonts.googleapis.com/css?family=Roboto:400,700|News+Cycle:400,700|Droid+Serif:400,700,700italic|Ineconsolata);
 html{
-  font-size: 24px;
+  font-size: 21px;
 }
 body{
   /*font-family: "Roboto", Helvetica, Arial, sans-serif;*/
   background-color: white;
   padding: 0.3rem 1rem;
   color: #222;
+  cursor: none;
 
   font-size: 1.5rem;
 }
@@ -179,4 +180,27 @@ code, pre, tt, .stream code{
   text-align: center;
   font-size: 1rem;
   padding-top: 1rem;
+}
+
+.defs{
+  max-width: 70%;
+  margin: auto;
+}
+
+.defs > div{
+  clear: both;
+}
+
+.defs h5{
+  float: left;
+  vertical-align: baseline;
+}
+
+.defs p{
+  float: right;
+  vertical-align: baseline;
+}
+
+td {
+  vertical-align: top;
 }

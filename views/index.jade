@@ -2,106 +2,216 @@ extends layout
 
 block content
   .el.title-slide(data-body-class="dark")
-    img(style='position:absolute;height:100%;z-index:100;', src='/img/waterfall1.gif')
-    img(style='float:left;visibility:hidden;', src='/img/waterfall1.gif')  
+    img(style='float:left;', src='/img/waterfall1.gif')  
     h1 Go with the flow
     h3: em Backbone and Streams
     div(style='height:8rem;') &nbsp;
     .note
       :markdown
+        ### Did you turn off your screensaver?
+        
         Ladies and gentlemen, thank you all for coming. My name is Ryan Muller, and
         I'm a software engineer at Novartis Institutes for Biomedical Research. I
-        write software to support the research scientists in their work.
+        write software that makes it easier for the scientists there to perform their
+        pharmaceutical research.
 
-        The subject of my talk today is functional reactive programming, or FRP,
-        and how it can be combined with Backbone. Functional reactive programming
-        is one of two event paradigms that's becoming more popular. The other is 
-        called communicating sequential processes, or CSP, and is likely to be 
-        familiar to those of you who have played around with ECMAScript 6 or Go.
+        I'm here to talk about functional reactive programming and how you can leverage
+        it in your Backbone applications. Before I dive in, though, I'm going to very
+        briefly introduce functional programming to set the stage for some of the points
+        I want to make later.
+  .el(data-body-class='dark')
+    h4 Functional programming
+    blockquote#func-p1.
+      Functional programming is a paradigm that treats computation as the evaluation of
+      mathematical functions and avoids state changes and mutable data.
+    small.el(style="float:right"): em &mdash;Wikipedia
+    .note.
+      Very brief overview: The official definition of FP is that it's a paradigm that
+      treats computation as the evaluation of mathematical functions and avoids state
+      changes and mutable data. I don't really like that definition, but it's from
+      Wikipedia, so it must be true.
+    .el
+      blockquote(style="clear:both;").
+        Functional programming is a style of programming where functions take input and
+        produce output without changing anything outside those functions.
+      .note.
+        My definition is that functional programming is a style of programming where 
+        functions take input and produce output without changing anything outside 
+        those functions.
+      small(style="float:right"): em &mdash;me
+  .el(data-body-class='dark')
+    table(style="width:100%;")
+      tr: td(colspan=2): h4 Imperative vs. functional
+      tr
+        td(style="width:50%;"): .el
+          h5 Imperative
+          pre.
+            var list = getListSomehow(),
+              newList = [];
+            for(var i = 0; i &lt; list; i++){
+              newList[i] = list[i] + 1;
+            }
+        td(style="width:50%;"): .el
+          h5 Functional
+          pre.
+            var list = getListSomehow(),
+              newList = list.map(x =&gt; x+1)
+    .note
+      :markdown
+        Here's a quick code sample. Let's say we have a list of numbers, and we want
+        to generate a new list whose values are one greater than those in the old list.
+        On the left we have the imperative version, or the "Java" version if you like.
+        Pretty familiar; loop through the list and increment your variables.
         
-        In this talk, I will:
+        On the right we have the functional version. To create the new list, we simply
+        `map` over the old one. We go from our imperative version, in which we have to
+        keep track of state (in this case the `i` variable) to a declarative version,
+        which feels a little like "magic in, magic out".
+  .el(data-body-class='dark')
+    h3 In <em>declarative programming,</em> the focus is on <strong>what you want to do</strong>.
+    h3 In <em>imperative programming,</em> the focus is on <strong>how you want to do it</strong>.
+    .note
+      :markdown
+        This is the main difference between imperative and functional programming.
+        In functional programming, which is declarative, the focus is on <em>what you want to do</em>;
+        in imperative programming, the focus is on <em>how you want to do it</em>.
         
-        * Briefly describe functional reactive programming
-        * Describe when you may or may not want to use FRP
-        * Introduce basic functional reactive programming concepts using Bacon.js
-        * Describe how to combine Bacon.js and Backbone to maximum effect (paradigms),
-        * Describe a couple of pitfalls that can occur when doing this, and
-        * Demonstrate the creation of a web-based chat app using Bacon.js and Backbone.
+        Now I'd like to go into
+        why I chose this topic for a bit with a brief, incomplete, and mostly correct
+        history of how we got here, to functional programming in 2014.
+  .el(data-body-class='dark')
+    h4 Functional programming + JS
+    .note.
+      In 1958, John McCarthy invented LISP just up the street here at MIT.
+      Even though LISP and its descendents are perhaps the best-known functional
+      programming languages, the concept of functional programming wasn't popular &rarr;
+    div.defs
+      div
+        h5 1958
+        p LISP invented at MIT
+      .el
+        h5 1977
+        p John Backus presents his paper
+        .note.
+          &rarr; until 1977, when John Backus presented his paper, called "Can Programming Be Liberated
+          from the von Neumann Style? A Functional Style and its Algebra of Programs". In it,
+          he proposed that programs should be built hierarchically from functions. Following from that
+          assertion is much of what makes up functional programming today.
+      .el
+        h5 1990
+        p Haskell 1.0 defined
+        .note.
+          In 1990, a committee on functional languages released the definition for Haskell 1.0,
+          which is a pure-functional language that all the cool kids are using today.
+      .el
+        h5 1995
+        p Netscape Navigator 2.0 ships with JavaScript
+        .note.
+          In 1995, Netscape Navigator shipped with JavaScript for the first time, which was
+          a big moment for us all; I know I was pretty excited. (Actually I was four at the
+          time and I had no clue.)
+      .el
+        h5 2004
+        p 
+          | Google releases their 
+          a(href='http://research.google.com/archive/mapreduce.html') MapReduce paper
+        .note.
+          In 2004, Google released their MapReduce paper, which proposed a method for using
+          functional programming to crunch large volumes of data. Because functional programming
+          does not change any kind of global state, any data processing following the MapReduce
+          paradigm became incredibly easy to scale and parallelize across multiple machines.
+      .el
+        h5 2010
+        p Underscore.js 1.0.0 released
+        .note
+          :markdown
+            And finally, in 2010 we saw the 1.0.0 release of Underscore.js, which brought
+            us many of the functions that were missing in JavaScript to enable us to write
+            these lovely functional programs operating over collections. I think maybe some
+            of you here have heard of it ;)
+            
+            To me, functional reactive programming (FRP) is a very natural next step. To go back to
+            my earlier statement: in declarative programming, you're thinking about what you're
+            going to do, rather than how you're going to do it. You can rely on these lower levels
+            of abstraction that computer science has spent decades building, and write powerful
+            programs using these tools.
+            
+            The central primitive in functional reactive programming is usually called an Observable
+            or a Signal. I prefer the term "immutable stream" because it fully describes what you're
+            working with.
   .el(data-body-class="dark")
     h3
       :markdown
-        A _stream_ is a series of related **events** and **errors** that **may terminate**,
-        that may not be modified after creation.
+        A _stream_ is a series of related **events** and **errors** that **may terminate**.
     .note
       :markdown
-        FRP, in essence, can be summed up in two words: *Immutable Streams*.
-        
-        What are those? Well, _streams_ are pretty straightforward: a stream
-        is a series of related events and errors that may terminate. Depending on your
-        library of choice, a stream may be called a Signal or an Observable. Here's an
+        _Streams_ are pretty straightforward: a stream
+        is a series of related events and errors that may terminate. Here's an
         example:
   .el
     #key-stream
-    .el#sample-error
+    .note
+      :markdown
+        This is a stream of `keyup` events, which is very easy to generate using Bacon.
+        
+        Events can wrap any JavaScript value: booleans, numbers, objects, and even
+        Bacon streams.
+        
+        <input>
+    .el
+      #sample-error
+      .note
+        :markdown
+          Streams may also have errors in them. Let's suppose for a second that the
+          stream here represents a particularly unreliable weather API. The X's
+          represent AJAX errors, which you would want to handle differently in your
+          application. It's Bacon's try/catch. If you're used to promises, just think
+          of a stream as a promise that can resolve more than once.
     .el
       #sample-end
       script(type='x/on-enter').
         var weather3 = Bacon.fromBinder(weatherBinder()).name('weather').take(3);
         weather3.asBubbleStream({element:'#sample-end'});
-    .note
-      :markdown
-        This is a stream composed of key presses, generated using an 
-        `asEventStream()` method that gets attached to jQuery objects when
-        you include Bacon.
-        
-        Events can wrap any JavaScript value: booleans, numbers, objects, and even
-        Bacon streams.
-  .note
-    :markdown
-      Streams may also have errors in them. Let's suppose for a second that the
-      stream here represents a particularly unreliable weather API. The X's
-      represent AJAX errors, which you would want to handle differently in your
-      application. It's Bacon's try/catch. If you're used to promises, just think
-      of a stream as a promise that can resolve more than once.
-  .note
-    :markdown
-      Finally, we have a stream here that emits a couple of values, then ends.
-      Once a stream has ended, it emits a special "end" event and nothing more.
-      
-      Now, I mentioned that these are immutable. You can't change a stream once
-      you've created it, but you can perform operations on streams to create
-      new streams. It's easier to think of Bacon as a realtime Underscore.js,
-      if you like.
+      .note
+        :markdown
+          Finally, we have a stream here that emits a couple of values, then ends.
+          Once a stream has ended, it emits a special "end" event and nothing more.
+          
+          Now, I mentioned that these are immutable. You can't change a stream once
+          you've created it, but you can perform operations on streams to create
+          new ones, in precisely the same way you operate over collections using Underscore.
   .el
     #weather-good
-    .el#weather-filter
-    .el#weather-map
-      
+    .note
+      :markdown
+        So here we've got another weather report stream. Really this is all just random numbers, but
+        suppose for a minute.
+    .el
+      #weather-filter
+      .note
+        :markdown
+          Now I've taken it and filtered it to create a slightly
+          nicer weather forecast. If it's colder than 41 degrees out, then I don't
+          want to know. Our original stream hasn't been altered at all, we've just created 
+          a new one with the information we're interested in.
+    .el
+      #weather-map
+      .note
+        :markdown
+          Now we take that and format it slightly. We can take this stream and
+          update a `div` directly with it; Bacon's API gives us...
     .el
       code: pre.
         weather.filter(t =&gt; (t &gt;= 41))
           .map(t =&gt; t+"&amp;deg; F")
           .assign($('#temp-display'),'html');
       h3(style="float:right;position:absolute;top:-0.5rem;right:0;padding-top:0;")#temp-display
-  .note
-    :markdown
-      So here we've got another weather report stream. Really this is all just random numbers, but
-      suppose for a minute.
-  .note
-    :markdown
-      Now I've taken it and filtered it to create a slightly
-      nicer weather forecast. If it's colder than 41 degrees out, then I don't
-      want to know. Our original stream hasn't been altered at all, we've just created 
-      a new one with the information we're interested in.
-  .note
-    :markdown
-      Now we take that and format it slightly. We can take this stream and
-      update a `div` directly with it; Bacon's API gives us...
-  .note
-    :markdown
-      ...an easy way to directly update our `div`.
-      
-      Bacon also provides us with a couple of ways to combine events from multiple streams.
+      .note
+        :markdown
+          ...an easy way to directly update our `div`. You can take a stream and use `assign` on
+          it to make it have side-effects; in this case, updating HTML content.
+          
+          Bacon also provides us with a couple of ways to combine events from multiple streams.
   .el
     h5: code .merge()
     script(type='x/on-enter') showMergeExample();
@@ -114,23 +224,26 @@ block content
       There's `merge()`, which grabs events from both streams...
   .el
     h5: code .combine()
+    script(type='x/on-enter') showCombineExample();
+    script(type='x/on-exit') hideCombineExample();
     #combine-ex1
     .el#combine-ex2
     .el#combine-ex3
-  .note
-    :markdown
-      ...`combine()`, which lets us combine streams with a custom function...
-      
-      ...and `zip()`, which takes elements pairwise from multiple streams. `zip()` must
-      be used with care, because unless your streams are somewhat constrained, the
-      elements being zipped up can become desynchronized. In my experience, `zip()`
-      is most reliable when you're combining streams which are only expected to ever
-      produce one event each.
-      
-      Finally, there's one higher-level method you need to understand if you're going
-      to do anything useful with Bacon: `flatMap()`. `flatMap()` takes a stream where each
-      event is itself a stream, and puts all the values from all the streams it sees onto
-      a single stream. Here's an example.
+    .note
+      :markdown
+        ...`combine()`, which lets us combine streams with a custom function...
+        
+        ...and `zip()`, which takes elements pairwise from multiple streams. `zip()` must
+        be used with care, because unless your streams are somewhat constrained, the
+        elements being zipped up can become desynchronized. In my experience, `zip()`
+        is most reliable when you're combining streams which are only expected to ever
+        produce one event each.
+        
+        I'm not going to bore you all with the *entire* API here, but there's one higher-level 
+        method you need to understand if you're going
+        to do anything useful with Bacon: `flatMap()`. `flatMap()` takes a stream where each
+        event is itself a stream, and puts all the values from all the streams it sees onto
+        a single stream. Here's an example.
   .el
     h5: code .flatMap()
     #flatmap-ex-urls
