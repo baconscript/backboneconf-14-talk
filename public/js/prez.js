@@ -6,6 +6,8 @@
   var keyup = $('body').asEventStream('keyup').map(x => x.which);
   keyup.log();
 
+  var socket = io.connect(document.location.origin);
+
   keyup.filter(function(x){return x===39 || x===40}).log('adv').onValue(advanceSubslide);
   keyup.filter(function(x){return x===37 || x===38}).log('adv').onValue(retreatSubslide);
 
@@ -30,6 +32,10 @@
     var isDark = $s.attr('data-body-class') === 'dark';
     $body.toggleClass('dark',isDark);
     $s.slideDown(function(){});
+    var $note = $currentSlide.children('.note');
+    if($note.length){
+      socket.emit('note',{note:$note.first().html()});
+    }
   }
 
   function advanceSlide(){

@@ -7,39 +7,39 @@ block content
     h1 Go with the flow
     h3: em Backbone and Streams
     div(style='height:8rem;') &nbsp;
-  .note
-    :markdown
-      Ladies and gentlemen, thank you all for coming. My name is Ryan Muller, and
-      I'm a software engineer at Novartis Institutes for Biomedical Research. I
-      write software to support the research scientists in their work.
+    .note
+      :markdown
+        Ladies and gentlemen, thank you all for coming. My name is Ryan Muller, and
+        I'm a software engineer at Novartis Institutes for Biomedical Research. I
+        write software to support the research scientists in their work.
 
-      The subject of my talk today is functional reactive programming, or FRP,
-      and how it can be combined with Backbone. Functional reactive programming
-      is one of two event paradigms that's becoming more popular. The other is 
-      called communicating sequential processes, or CSP, and is likely to be 
-      familiar to those of you who have played around with ECMAScript 6 or Go.
-      
-      In this talk, I will:
-      
-      * Briefly describe functional reactive programming
-      * Describe when you may or may not want to use FRP
-      * Introduce basic functional reactive programming concepts using Bacon.js
-      * Describe how to combine Bacon.js and Backbone to maximum effect (paradigms),
-      * Describe a couple of pitfalls that can occur when doing this, and
-      * Demonstrate the creation of a web-based chat app using Bacon.js and Backbone.
+        The subject of my talk today is functional reactive programming, or FRP,
+        and how it can be combined with Backbone. Functional reactive programming
+        is one of two event paradigms that's becoming more popular. The other is 
+        called communicating sequential processes, or CSP, and is likely to be 
+        familiar to those of you who have played around with ECMAScript 6 or Go.
+        
+        In this talk, I will:
+        
+        * Briefly describe functional reactive programming
+        * Describe when you may or may not want to use FRP
+        * Introduce basic functional reactive programming concepts using Bacon.js
+        * Describe how to combine Bacon.js and Backbone to maximum effect (paradigms),
+        * Describe a couple of pitfalls that can occur when doing this, and
+        * Demonstrate the creation of a web-based chat app using Bacon.js and Backbone.
   .el(data-body-class="dark")
     h3
       :markdown
         A _stream_ is a series of related **events** and **errors** that **may terminate**,
         that may not be modified after creation.
-  .note
-    :markdown
-      FRP, in essence, can be summed up in two words: *Immutable Streams*.
-      
-      What are those? Well, _streams_ are pretty straightforward: a stream
-      is a series of related events and errors that may terminate. Depending on your
-      library of choice, a stream may be called a Signal or an Observable. Here's an
-      example:
+    .note
+      :markdown
+        FRP, in essence, can be summed up in two words: *Immutable Streams*.
+        
+        What are those? Well, _streams_ are pretty straightforward: a stream
+        is a series of related events and errors that may terminate. Depending on your
+        library of choice, a stream may be called a Signal or an Observable. Here's an
+        example:
   .el
     #key-stream
     .el#sample-error
@@ -48,14 +48,14 @@ block content
       script(type='x/on-enter').
         var weather3 = Bacon.fromBinder(weatherBinder()).name('weather').take(3);
         weather3.asBubbleStream({element:'#sample-end'});
-  .note
-    :markdown
-      This is a stream composed of key presses, generated using an 
-      `asEventStream()` method that gets attached to jQuery objects when
-      you include Bacon.
-      
-      Events can wrap any JavaScript value: booleans, numbers, objects, and even
-      Bacon streams.
+    .note
+      :markdown
+        This is a stream composed of key presses, generated using an 
+        `asEventStream()` method that gets attached to jQuery objects when
+        you include Bacon.
+        
+        Events can wrap any JavaScript value: booleans, numbers, objects, and even
+        Bacon streams.
   .note
     :markdown
       Streams may also have errors in them. Let's suppose for a second that the
@@ -257,7 +257,7 @@ block content
         
   .shows-over End of presentation.
       
-  
+  script(src='/socket.io/socket.io.js')
   script(src='/js/vendor/jquery.js')
   script(src='/js/vendor/Bacon.js')
   script(src='/js/vendor/underscore.js')

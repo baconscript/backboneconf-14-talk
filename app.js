@@ -29,10 +29,13 @@ var ipsum = function(){
 }
 
 var app = express();
+var server = require('http').Server(app);
+var io = require('socket.io')(server);
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
+app.set('title', 'Go with the flow: Backbone and Streams');
 
 app.use(favicon());
 app.use(logger('dev'));
@@ -49,9 +52,12 @@ function shuffle(o){ //v1.0
 };
 
 app.get('/', function(req, res) {
-  res.render('index', { title: 'Express' });
+  res.render('index', { title: 'Go with the flow: Backbone and Streams' });
 });
 
+app.get('/notes', function(req, res){
+  res.render('notes');
+});
 
 shuffle(names);
 
@@ -124,6 +130,20 @@ app.post('/api/message', function(req, res){
   res.send('ok');
 });
 
+var sockets = [];
+
+io.on('connection', function(socket){
+  sockets.push(socket);
+  socket.on('syn', function(){socket.emit('ack',{});});
+  console.log('Socket connected (now have '+sockets.length+')')
+  socket.on('note', function(data){
+    console.log('note', data);
+    sockets.forEach(function(socket){
+      socket.emit('note', data);
+    });
+  });
+});
+
 /// catch 404 and forward to error handler
 app.use(function(req, res, next) {
     var err = new Error('Not Found');
@@ -155,5 +175,4 @@ app.use(function(err, req, res, next) {
     });
 });
 
-
-module.exports = app;
+module.exports = server;

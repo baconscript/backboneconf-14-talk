@@ -7,6 +7,7 @@
     "postinstall": "node_modules/.bin/grunt"
   },
   "dependencies": {
+    "baconipsum": "~0.1.2",
     "body-parser": "~1.0.0",
     "bower": "~1.3.12",
     "cookie-parser": "~1.0.1",
@@ -15,13 +16,12 @@
     "grunt": "~0.4.5",
     "grunt-cli": "^0.1.13",
     "jade": "~1.3.0",
+    "lodash": "~2.4.1",
+    "marked": "~0.3.2",
     "morgan": "~1.0.0",
+    "random-weighted-choice": "~0.1.1",
     "shelljs": "~0.3.0",
     "socket.io": "^1.2.1",
-    "static-favicon": "~1.0.0",
-    "marked": "~0.3.2",
-    "baconipsum": "~0.1.2",
-    "random-weighted-choice": "~0.1.1",
-    "lodash": "~2.4.1"
+    "static-favicon": "~1.0.0"
   }
 }

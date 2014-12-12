@@ -1,0 +1,23 @@
+extends layout
+
+block content
+  #note waiting
+  .ui.modal#settings
+    .header Settings
+    .content
+      .2.huge.fluid.ui.buttons
+        a.blue.ui.button#font-dn - Font
+        a.teal.ui.button#font-up + Font
+    .actions
+      a.positive.ui.button#done Done
+  .large.bottom.fixed.ui.menu
+    a.red.ui.item#back Back
+    a.item#settings-btn Settings
+    .right.menu
+      a.green.ui.item#next Next
+  
+  script(src='/socket.io/socket.io.js')
+  script(src='/js/vendor/jquery.js')
+  script(src='/js/vendor/Bacon.js')
+  script(src='/js/vendor/semantic.min.js')
+  script(src='/js/notes.js')
