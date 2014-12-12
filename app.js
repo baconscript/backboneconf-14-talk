@@ -130,17 +130,19 @@ app.post('/api/message', function(req, res){
   res.send('ok');
 });
 
-var sockets = [];
-
 io.on('connection', function(socket){
-  sockets.push(socket);
   socket.on('syn', function(){socket.emit('ack',{});});
-  console.log('Socket connected (now have '+sockets.length+')')
   socket.on('note', function(data){
-    console.log('note', data);
-    sockets.forEach(function(socket){
-      socket.emit('note', data);
-    });
+    io.emit('note', data);
+  });
+  socket.on('next', function(){
+    io.emit('next');
+  });
+  socket.on('back', function(){
+    io.emit('back');
+  });
+  socket.on('font-size', function(delta){
+    io.emit('font-size', delta);
   });
 });
 

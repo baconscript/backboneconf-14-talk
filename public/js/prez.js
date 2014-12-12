@@ -4,12 +4,22 @@
   var currentSlide = 0;
   var $currentSlide = $($slides[currentSlide]);
   var keyup = $('body').asEventStream('keyup').map(x => x.which);
-  keyup.log();
 
   var socket = io.connect(document.location.origin);
 
-  keyup.filter(function(x){return x===39 || x===40}).log('adv').onValue(advanceSubslide);
-  keyup.filter(function(x){return x===37 || x===38}).log('adv').onValue(retreatSubslide);
+  keyup.filter(function(x){return x===39 || x===40})
+    .merge(Bacon.fromEventTarget(socket, 'next')).log()
+    .onValue(advanceSubslide);
+  keyup.filter(function(x){return x===37 || x===38})
+    .merge(Bacon.fromEventTarget(socket, 'back'))
+    .onValue(retreatSubslide);
+
+  Bacon.fromEventTarget(socket, 'font-size')
+    .scan(+$('html').css('font-size').match(/[\d.]+/)[0], function(last, delta){
+      return last + delta;
+    }).onValue(function(size){
+      $('html').css('font-size', size+'px');
+    });
 
   $('.el').hide();
   runEntryScript();
@@ -41,7 +51,6 @@
   function advanceSlide(){
     runExitScript();
     currentSlide++;
-    console.log('Advancing to slide '+currentSlide);
     if(currentSlide >= $slides.length){
       currentSlide = $slides.length;
       $('body').addClass('dark');
@@ -71,7 +80,6 @@
     if(currentSlide === 0) return;
     runExitScript();
     currentSlide--;
-    console.log('Retreating to slide '+currentSlide);
     $currentSlide = $($slides[currentSlide]);
     $('.shows-over').hide();
     runEntryScript();

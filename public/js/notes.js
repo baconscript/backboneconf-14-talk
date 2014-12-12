@@ -16,4 +16,10 @@
   $('#settings-btn').click(function(){
     $('#settings').modal('show');
   });
+  $('#next').click(function(){
+    socket.emit('next');
+  });
+  $('#back').click(function(){
+    socket.emit('back');
+  });
 })();
