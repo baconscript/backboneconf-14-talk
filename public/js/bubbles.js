@@ -196,7 +196,10 @@ $(function(){
     }).name('stream2'),
     combineAB = combineA.combine(combineB, function(color, number){
       return {color: colorFromName(color), number: number};
-    });
+    }),
+    flatMapURLs = Bacon.interval(2000, 'http://...').name('urls'),
+    flatMapAJAX = flatMapURLs.map('&rarr;').name('urls.map(makeAjaxRequest)'),
+    flatMapResponse = flatMapURLs.delay(500).map('{"foo":"bar"}').name('urls.flatMap(makeAjaxRequest)');
 
   $body = $('body');
 
@@ -216,12 +219,12 @@ $(function(){
     mergeAB.asBubbleStream({element:'#merge-ex3', color:function(x){
       return x==='A'?'#a00':'#00b';
     }});
-  }
+  };
   window.hideMergeExample = function hideMergeExample(){
     $('#merge-ex1').html('');
     $('#merge-ex2').html('');
     $('#merge-ex3').html('');
-  }
+  };
   window.showCombineExample = function showCombineExample(){
     combineA.asBubbleStream({element:'#combine-ex1',map: _constant(''),color:function(x){return colorFromName(x)}});
     combineB.asBubbleStream({element:'#combine-ex2'});
@@ -231,10 +234,18 @@ $(function(){
       color:function(x){return (x.color)},
       code: 'stream1.combine(stream2, function(color, number){...})'
     });
-  }
+  };
   window.hideCombineExample = function hideCombineExample(){
     $('#combine-ex1').html('');
     $('#combine-ex2').html('');
     $('#combine-ex3').html('');
-  }
+  };
+  window.showFlatMapExample = function showFlatMapExample(){
+    flatMapURLs.asBubbleStream({element:'#flatmap-ex-urls'});
+    flatMapAJAX.asBubbleStream({element:'#flatmap-ex-ajax-streams'});
+    flatMapResponse.asBubbleStream({element:'#flatmap-ex-ajax-flat'});
+  };
+  window.hideFlatMapExample = function hideFlatMapExample(){
+    $('#flatmap-ex-urls, #flatmap-ex-ajax-streams, #flatmap-ex-ajax-flat').html('');
+  };
 });

@@ -118,6 +118,12 @@
           eval($exitScript.first().html());
         }
       });
+      if($e.length === 1){
+        var $note = $currentSlide.children('.note');
+        if($note.length){
+          socket.emit('note',{note:$note.first().html()});
+        }
+      }
     } else {
       retreatSlide();
     }

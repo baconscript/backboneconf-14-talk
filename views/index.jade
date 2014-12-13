@@ -221,7 +221,8 @@ block content
     .el#merge-ex3
   .note
     :markdown
-      There's `merge()`, which grabs events from both streams...
+      There's `merge()`, which grabs events from both streams. Here we've got a stream of red A's
+      and a stream of blue B's, and `merge` creates a new stream with all events on it.
   .el
     h5: code .combine()
     script(type='x/on-enter') showCombineExample();
@@ -231,13 +232,9 @@ block content
     .el#combine-ex3
     .note
       :markdown
-        ...`combine()`, which lets us combine streams with a custom function...
-        
-        ...and `zip()`, which takes elements pairwise from multiple streams. `zip()` must
-        be used with care, because unless your streams are somewhat constrained, the
-        elements being zipped up can become desynchronized. In my experience, `zip()`
-        is most reliable when you're combining streams which are only expected to ever
-        produce one event each.
+        There's also `combine()`, which allows you to run a function on the latest event from each
+        stream to create your events. Here it's grabbing the color from the first stream and the
+        number from the second.
         
         I'm not going to bore you all with the *entire* API here, but there's one higher-level 
         method you need to understand if you're going
@@ -246,86 +243,63 @@ block content
         a single stream. Here's an example.
   .el
     h5: code .flatMap()
+    script(type='x/on-enter') showFlatMapExample();
+    script(type='x/on-exit') hideFlatMapExample();
     #flatmap-ex-urls
+    .note
+      :markdown
+        For instance, suppose we're getting URLs somehow---user input, some automated event
+        perhaps, it doesn't matter. One thing that's nice about Bacon is that you don't care
+        where your events come from; as long as they're of the type you're expecting, your
+        application will just work.
     .el
       #flatmap-ex-ajax-streams
+      .note
+        :markdown
+          We take these, and we map each URL to an AJAX call. An AJAX call is a perfect example
+          of why a stream is a promise with added functionality. You make the request, and what
+          you receive back is a representation of a future potential for response or error.
+          
+          You can see here that each URL has been mapped to a stream. I've just drawn the AJAX
+          streams as arrows here, since it would get way out of control if I tried to actually
+          make and animate streams within the events.
     .el
       #flatmap-ex-ajax-flat
-  .note
-    :markdown
-       For instance, suppose we're getting URLs somehow---user input, some automated event
-       perhaps, it doesn't matter. One thing that's nice about Bacon is that you don't care
-       where your events come from; as long as they're of the type you're expecting, your
-       application will just work.
-  .note
-    :markdown
-      We take these, and we map each URL to an AJAX call. An AJAX call is a perfect example
-      of why a stream is a promise with added functionality. You make the request, and what
-      you receive back is a representation of a future potential for response or error.
-      
-      You can see here that each URL has been mapped to a stream. I've just drawn the AJAX
-      streams as arrows here, since it would get way out of control if I tried to actually
-      make and animate streams within the events.
-  .note
-    :markdown
-      Finally, we use `flatMap` to take all our replies and flatten them into one stream.
-      This is how you would generate a stream of weather updates, for instance, like I
-      showed earlier.
-      
-      You can also perform a bit of time-traveling with events.
+      .note
+        :markdown
+          Finally, we use `flatMap` to take all our replies and flatten them into one stream.
+          This is how you would generate a stream of weather updates, for instance, like I
+          showed earlier.
   .el
-    h5: code .delay()
-    #example-delay-1
-    #example-delay-2
-  .note
-    :markdown
-      The `delay()` function delays each event.
-  .el
-    h5: code .throttle()
-    #example-throttle-1
-    #example-throttle-2
-  .note
-    :markdown
-      The `throttle()` function only permits events to occur at a certain maximum
-      frequency, and drops all other events that occur too quickly. This is great for
-      updating server state on an action that could potentially happen quite rapidly.
-      You're not interested in every event that's happening, so it's ok to drop a few.
-  .el
-    h5: code .bufferingThrottle()
-    #example-buff-throttle-1
-    #example-buff-throttle-2
-  .note
-    :markdown
-      If you really do need every event, you can use `bufferingThrottle()` to spread
-      out each event. The events will still all be passed on, but delayed enough so
-      there's a certain minimum delay between events.
-  .el: code: pre map() filter() scan() flatMap() delay() throttle() bufferingThrottle()
-  .note
-    :markdown
-      All this vocabulary---`map`, `filter`, `scan`, `flatMap`, and friends---makes up
-      almost a domain-specific language. Naturally, this is one reason why you may want
-      to consider *not* using FRP; it makes it a bit more difficult for people to jump
-      into your codebase.
-      
-      In addition, the fact that all streams are immutable after creation means that you
-      really can't think about problems in the same way. You no longer think in terms of
-      past, present, and future; I find that you're sort of stuck in a perpetual present
-      and are more concerned with "what's going on over here" and "what's going on over
-      there". This is another issue with FRP and Bacon, specifically that it's got a high
-      barrier to entry.
-      
-      For these reasons, Bacon works best on new projects, not on updates. Of course, you
-      could use Bacon to update a legacy project, but---especially if someone else is
-      working on the same code---it could potentially bar other people from modifying your
-      code. (Of course, sometimes that's a good thing.)
-      
-      > There's another way in which Bacon can be quite a lot to adjust to: when you tend
-      > to make extensive use of closures. Whenever you're converting code with a lot of
-      > variables being passed through closures, you'll need to either make streams for
-      > groups of variables depending on how they're being used, or else 
-      
-      There are basically infinite ways you can incorporate Bacon and Backbone, much like
-      there are nearly infinite ways to use Backbone by itself.
+    code: pre.
+      map() filter() reduce() scan() flatMap()
+      delay() throttle() bufferingThrottle()
+    .note
+      :markdown
+        All this vocabulary---`map`, `filter`, `scan`, `flatMap`, and friends---makes up
+        almost a domain-specific language. Naturally, this is one reason why you may want
+        to consider *not* using FRP; it makes it a bit more difficult for people to jump
+        into your codebase.
+        
+        In addition, the fact that all streams are immutable after creation means that you
+        really can't think about problems in the same way. You no longer think in terms of
+        past, present, and future; I find that you're sort of stuck in a perpetual present
+        and are more concerned with "what's going on over here" and "what's going on over
+        there". This is another issue with FRP and Bacon, specifically that it's got a high
+        barrier to entry.
+        
+        For these reasons, Bacon works best on new projects, not on updates. Of course, you
+        could use Bacon to update a legacy project, but---especially if someone else is
+        working on the same code---it could potentially bar other people from modifying your
+        code. (Of course, sometimes that's a good thing.)
+        
+        > There's another way in which Bacon can be quite a lot to adjust to: when you tend
+        > to make extensive use of closures. Whenever you're converting code with a lot of
+        > variables being passed through closures, you'll need to either make streams for
+        > groups of variables depending on how they're being used, or else 
+        
+        There are basically infinite ways you can incorporate Bacon and Backbone, much like
+        there are nearly infinite ways to use Backbone by itself.
   .el
     #model-stream
       h3 model stream example
@@ -333,12 +307,12 @@ block content
       h3 model event stream example
     .el#model-event-field-stream
       h3 model event field stream example
-  .note
-    :markdown
-      One of the simplest is to use a stream of models to update a View. This is really nice
-      when you have a very simple model, such as a model that knows about temperature and
-      cloud cover, for example. However, if they all fundamentally represent the same thing,
-      you might want to consider...
+    .note
+      :markdown
+        One of the simplest is to use a stream of models to update a View. This is really nice
+        when you have a very simple model, such as a model that knows about temperature and
+        cloud cover, for example. However, if they all fundamentally represent the same thing,
+        you might want to consider...
   .note
     :markdown
       ...using one model, and passing events to your View. This is another dead-simple model,

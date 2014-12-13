@@ -1,32 +1,17 @@
 ;(function(){
 
+  function syncAsStream(method, model, options){
+    return Bacon.fromPromise(
+      Backbone.sync.apply(this, arguments);
+    );
+  }
+
   var Model = Backbone.Model.extend({
-    sync: function(method, model, options){
-      var stream = Bacon.fromPromise(
-        Backbone.sync.apply(this,arguments)
-      );
-      this.registerSyncStream(stream);
-      return stream;
-    },
-    // TODO: do I need registerSyncStream?
-    registerSyncStream: function(stream, options){
-      this.trigger('request', this, stream, options);
-      stream.onValue((function(v){
-        this.trigger('sync', this, v, options);
-      }).bind(this));
-      stream.onError((function(err){
-        this.trigger('error', this, err, options);
-      }).bind(this));
-      return stream;
-    }
+    sync: syncAsStream
   });
 
   var Collection = Backbone.Collection.extend({
-    sync: function(){
-      return Bacon.fromPromise(
-        Backbone.sync.apply(this,arguments)
-      );
-    }
+    sync: syncAsStream
   });
 
   var Message = Model.extend();
@@ -46,4 +31,4 @@
 
 
 
-});
+})();
