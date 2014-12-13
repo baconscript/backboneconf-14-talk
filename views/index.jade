@@ -271,12 +271,12 @@ block content
           This is how you would generate a stream of weather updates, for instance, like I
           showed earlier.
   .el
-    code: pre.
+    code: pre(style='text-align:center;').
       map() filter() reduce() scan() flatMap()
       delay() throttle() bufferingThrottle()
     .note
       :markdown
-        All this vocabulary---`map`, `filter`, `scan`, `flatMap`, and friends---makes up
+        All this vocabulary---`map`, `filter`, `merge`, `flatMap`, and friends---makes up
         almost a domain-specific language. Naturally, this is one reason why you may want
         to consider *not* using FRP; it makes it a bit more difficult for people to jump
         into your codebase.
@@ -300,39 +300,64 @@ block content
         
         There are basically infinite ways you can incorporate Bacon and Backbone, much like
         there are nearly infinite ways to use Backbone by itself.
-  .el
+  .el#bb-stream-slide
+    script(type='x/on-enter').
+      Bacon.interval(2500, 'Backbone.Model')
+        .name('stream of models')
+        .asBubbleStream({element:'#model-stream'});
+    script(type='x/on-exit').
+      $('#bb-stream-slide .stream').html('');
     #model-stream
-      h3 model stream example
-    .el#model-event-stream
-      h3 model event stream example
-    .el#model-event-field-stream
-      h3 model event field stream example
     .note
       :markdown
         One of the simplest is to use a stream of models to update a View. This is really nice
         when you have a very simple model, such as a model that knows about temperature and
         cloud cover, for example. However, if they all fundamentally represent the same thing,
         you might want to consider...
-  .note
-    :markdown
-      ...using one model, and passing events to your View. This is another dead-simple model,
-      and probably most familiar to those of you who use...
-  .el: code: pre.
-    model.on('change', =&gt; view.render(model.toJSON()))
-  .note
-    :markdown
-      ...a system something like this, or maybe when you see an update you perform a jQuery
-      selection and only update a particular portion of your view. You can replace that with
-      this:
-  .el: code: pre.
-    model.asEventStream('change').onValue(=&gt; view.render(model.toJSON()))
-  .note
-    :markdown
-      Or, to have even more control over what you render, you could go one level deeper and
-      capture only the changes on a particular field:
-  .el: code: pre.
-    model.asEventStream('change:name').onValue(=&gt; view.$('.name').text(model.get('name')))
-  .el
+    .el
+      #model-event-stream
+      script(type='x/on-enter').
+        Bacon.interval(2500, 'change')
+          .name('model.asEventStream("change")')
+          .asBubbleStream({element:'#model-event-stream'})
+      
+      .note
+        :markdown
+          ...using one model, and passing events to your View. This is another dead-simple model,
+          and probably most familiar to those of you who use...
+    .el
+      code: pre model.on('change', =&gt; view.render(model.toJSON()))
+      .note
+        :markdown
+          ...something like this. The Bacon version of that is this:
+    .el
+      code: pre.
+        model.asEventStream('change').onValue(=&gt; view.render(model.toJSON()))
+      .note
+        :markdown
+          Or, to avoid re-rendering your entire view when you don't have to, maybe when you see an
+          update you perform a jQuery selection and only update a particular portion of your view. 
+          You can replace that with this:
+    .el
+      #model-event-field-stream
+      script(type='x/on-enter').
+        Bacon.repeatedly(2500, ['foo','bar','baz'])
+          .name('model.asEventStream("change:fieldname")')
+          .asBubbleStream({element:'#model-event-field-stream'})
+      code: pre.
+        model.asEventStream('change:name')
+          .onValue(=&gt; view.$('.name').text(model.get('name')))
+      .note
+        :markdown
+          This gives you really fine-grained control over your updates, and you can render only the
+          parts of your view that have changed.
+          
+          Now, these examples in and of themselves are fairly useless. The power comes when you want
+          to compose them or modify them. If you already have your application running on streams,
+          it becomes trivial to change the way the streams flow through your application.
+  .el(data-body-class='dark')
+    .note Ok. Let's make an app.
+  .el(data-body-class='dark')
     h2 Chat server API
     p
       :markdown
@@ -341,6 +366,43 @@ block content
         * **POST** `/api/message` `<message text>` -- post a message
         * **POST** `/api/typing` -- tell the server that the user is typing
         * **POST** `/api/status` `<status text>` -- update status
+    .note
+      :markdown
+        Suppose you've got an API like this one that's already been written. In reality, WebSockets
+        would be the way to go, but for the sake of example, our app is going to work by polling.
+        Our chat app is just going to be one big chat room for the sake of simplicity.
+  .el
+    code: pre.
+      
+      var Message = Backbone.Model.extend();
+      
+      var ChatThread = Backbone.Collection.extend({
+        model: Message,
+        url: t => '/api/messages?since='+t,
+        initialize: function(){<span id="init-hilite">
+          this.poll = Bacon.interval(1000);
+          this.lastUpdate = this.poll
+            .map(=> +new Date())
+            .slidingWindow(2,2)
+            .map(x => x[1]);
+          this.lastUpdate.sampledBy(poll)
+            .flatMap(t => Backbone.fromPromise(
+              $.getJSON(this.url(t))
+            ))
+            .map(json => new Message(json))
+            .onValue(msg => this.push(msg));</span>
+        }
+      });
+    .el: script(type='x/on-enter') $('#init-hilite').css({color:'#00b'});
+    .el: script(type='x/on-exit')  $('#init-hilite').css({color:'#000'});
+  .el
+    #poll-interval
+    .el
+      #poll-map-1
+    .el
+      #poll-slide
+    .el
+      #poll-map-2
         
   .shows-over End of presentation.
       
