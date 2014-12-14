@@ -199,7 +199,14 @@ $(function(){
     }),
     flatMapURLs = Bacon.interval(2000, 'http://...').name('urls'),
     flatMapAJAX = flatMapURLs.map('&rarr;').name('urls.map(makeAjaxRequest)'),
-    flatMapResponse = flatMapURLs.delay(500).map('{"foo":"bar"}').name('urls.flatMap(makeAjaxRequest)');
+    flatMapResponse = flatMapURLs.delay(500).map('{"foo":"bar"}').name('urls.flatMap(makeAjaxRequest)'),
+    pollInterval = Bacon.interval(1000),
+    pollMap1 = pollInterval.map(function(){return +new Date()}),
+    pollSlide = pollMap1.slidingWindow(2,2),
+    scan1 = Bacon.interval(2000).map(function(){return Math.floor(Math.random()*10)}).name('numbers'),
+    scan2 = scan1.scan(0, function(a,b){return a+b})
+      .withDescription(scan1,'scan','add')
+    ;
 
   $body = $('body');
 
@@ -248,4 +255,8 @@ $(function(){
   window.hideFlatMapExample = function hideFlatMapExample(){
     $('#flatmap-ex-urls, #flatmap-ex-ajax-streams, #flatmap-ex-ajax-flat').html('');
   };
+  window.showScan = function(){
+    scan2.asBubbleStream({element:'#scan-2'});
+  }
+  scan1.asBubbleStream({element:'#scan-1'});
 });

@@ -10,7 +10,7 @@
   })();
   var $currentSlide = $($slides[currentSlide]);
 
-  var socket = io.connect(document.location.origin);
+  var socket = window.socket = io.connect(document.location.origin);
 
   var keyup = window.keyup = $('body').asEventStream('keyup').map(x => x.which)
     .merge(Bacon.fromEventTarget(socket, 'keyup'));
@@ -129,5 +129,10 @@
     }
   }
 
+  socket.on('custom', function(data){
+    if(data==='hide chat'){
+      $('#chat-box').slideUp();
+    }
+  });
 
 })();

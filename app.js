@@ -79,10 +79,11 @@ function makeMessage(){
 }
 
 function randUser(){
-  return users[Math.floor(Math.random()*users.length)];
+  return users.filter(function(u){return u && (u.name!=='Ryan');})[Math.floor(Math.random()*users.length)];
 }
 
 function addUser(){
+  console.log('addUser');
   if(!names.length) return;
   var username = names.pop(),
     user = {
@@ -99,23 +100,25 @@ function addUser(){
 }
 
 function nextMessage(){
-  messages.push(makeMessage());
+  if(users.length)
+    messages.push(makeMessage());
   setTimeout(nextMessage, Math.random()*5e3+7e3);
 }
 
 function startMessages(){
   if(messagesRunning) return;
   messagesRunning = true;
-  addUser();
+
+  _.where(users,{name:'Ryan'},function(u){u.joined = +new Date()});
+  userEvents.push({type:'useradd',user:_.where(users,{name:'Ryan'}),when:+new Date()});
+  addUser(); addUser();
   nextMessage();
 }
 
 app.get('/api/messages', function(req, res){
   var since = +req.query.since || 0;
   startMessages();
-  _.where(users,{name:'Ryan'},function(u){u.joined = +new Date()});
-  userEvents.push({type:'useradd',user:_.where(users,{name:'Ryan'}),when:+new Date()});
-  res.json(messages.filter(function(message){return message.when>since}));
+  res.json(messages.filter(function(message){return message.user && message.when>since}));
 });
 
 app.get('/api/user-events', function(req, res){
@@ -124,8 +127,9 @@ app.get('/api/user-events', function(req, res){
 });
 
 app.post('/api/message', function(req, res){
-  var text = req.data,
-    message = {when: +new Date(), content: text};
+  var text = req.body.message,
+    message = {when: +new Date(), content: text, user: _.where(users, {name:'Ryan'})};
+  console.log(message);
   messages.push(message);
   res.send('ok');
 });
@@ -153,6 +157,9 @@ io.on('connection', function(socket){
   });
   socket.on('restart', function(){
     io.emit('restart');
+  });
+  socket.on('custom', function(data){
+    io.emit('custom', data);
   });
 });
 

@@ -1,6 +1,7 @@
 extends layout
 
 block content
+  script(src='/js/vendor/jquery.js')
   .el.title-slide(data-body-class="dark")
     img(style='float:left;', src='/img/waterfall1.gif')  
     h1 Go with the flow
@@ -75,66 +76,43 @@ block content
         This is the main difference between imperative and functional programming.
         In functional programming, which is declarative, the focus is on <em>what you want to do</em>;
         in imperative programming, the focus is on <em>how you want to do it</em>.
-        
-        Now I'd like to go into
-        why I chose this topic for a bit with a brief, incomplete, and mostly correct
-        history of how we got here, to functional programming in 2014.
   .el(data-body-class='dark')
-    h4 Functional programming + JS
+    h4 The vocabulary of Underscore
     .note.
-      In 1958, John McCarthy invented LISP just up the street here at MIT.
-      Even though LISP and its descendents are perhaps the best-known functional
-      programming languages, the concept of functional programming wasn't popular &rarr;
+      In 2010, we got the 1.0 release of Underscore, which brought all these lovely functional bits
+      to JavaScript. We gained a powerful vocabulary that allowed us to specify just what we want
+      to do, and rely on Underscore to take care of the fiddly details. We've got:
     div.defs
-      div
-        h5 1958
-        p LISP invented at MIT
       .el
-        h5 1977
-        p John Backus presents his paper
-        .note.
-          &rarr; until 1977, when John Backus presented his paper, called "Can Programming Be Liberated
-          from the von Neumann Style? A Functional Style and its Algebra of Programs". In it,
-          he proposed that programs should be built hierarchically from functions. Following from that
-          assertion is much of what makes up functional programming today.
-      .el
-        h5 1990
-        p Haskell 1.0 defined
-        .note.
-          In 1990, a committee on functional languages released the definition for Haskell 1.0,
-          which is a pure-functional language that all the cool kids are using today.
-      .el
-        h5 1995
-        p Netscape Navigator 2.0 ships with JavaScript
-        .note.
-          In 1995, Netscape Navigator shipped with JavaScript for the first time, which was
-          a big moment for us all; I know I was pretty excited. (Actually I was four at the
-          time and I had no clue.)
-      .el
-        h5 2004
-        p 
-          | Google releases their 
-          a(href='http://research.google.com/archive/mapreduce.html') MapReduce paper
-        .note.
-          In 2004, Google released their MapReduce paper, which proposed a method for using
-          functional programming to crunch large volumes of data. Because functional programming
-          does not change any kind of global state, any data processing following the MapReduce
-          paradigm became incredibly easy to scale and parallelize across multiple machines.
-      .el
-        h5 2010
-        p Underscore.js 1.0.0 released
+        h5 map
+        p Converts values
         .note
           :markdown
-            And finally, in 2010 we saw the 1.0.0 release of Underscore.js, which brought
-            us many of the functions that were missing in JavaScript to enable us to write
-            these lovely functional programs operating over collections. I think maybe some
-            of you here have heard of it ;)
+            map to convert values
+            filter to remove values
+            reduce to summarize, and so on, and so forth.
+      .el
+        h5 filter
+        p Removes values
+      .el
+        h5 reduce
+        p Summarizes values
+      .el
+        h5 findWhere
+        p Locates values
+      .el
+        h5 any
+        p Checks existence of values
+        .note
+          :markdown
+            To me, functional reactive programming (FRP) is a very natural next step. The BaconJS
+            documentation looks very much like the Underscore documentation, in that it gives us
+            a vocabulary with which we build programs. Once you get used to using this vocabulary,
+            though, you do get a bit spoiled. Personally, when I switch from BaconJS to plain 
+            JavaScript it feels a little like I'm writing assembly code, just because I get used to
+            these abstractions that Bacon gives me.
             
-            To me, functional reactive programming (FRP) is a very natural next step. To go back to
-            my earlier statement: in declarative programming, you're thinking about what you're
-            going to do, rather than how you're going to do it. You can rely on these lower levels
-            of abstraction that computer science has spent decades building, and write powerful
-            programs using these tools.
+            I've talked enough about Bacon; now I'm going to give you all some examples.
             
             The central primitive in functional reactive programming is usually called an Observable
             or a Signal. I prefer the term "immutable stream" because it fully describes what you're
@@ -210,8 +188,26 @@ block content
         :markdown
           ...an easy way to directly update our `div`. You can take a stream and use `assign` on
           it to make it have side-effects; in this case, updating HTML content.
-          
-          Bacon also provides us with a couple of ways to combine events from multiple streams.
+  .el
+    #scan-1
+    .el
+      script(type='x/on-enter') showScan();
+      #scan-2
+    .note
+      :markdown
+        Reduce also has a parallel in Bacon: it's `scan`. Here I'm taking a stream of numbers and
+        using scan to create a real-time updating sum. There's also another function called
+        `reduce` which will wait until your stream closes and emit a single reduced value. Both are
+        analagous to Underscore's `reduce` function, it's just that `scan` constantly updates and
+        `reduce` emits a single value at the end. Both are useful in different scenarios.
+        
+        One point I'd like to make about `scan` is that it creates a special kind of stream which
+        Bacon calls a Property. Properties and streams are very similar, but conceptually they 
+        differ. A stream is considered to be a series of discrete, separate events, whereas a
+        Property is one continuous value that changes over time. Bacon treats them mostly the same,
+        but there are a couple of cases in which they differ.
+        
+        Bacon also provides us with a couple of ways to combine events from multiple streams.
   .el
     h5: code .merge()
     script(type='x/on-enter') showMergeExample();
@@ -219,10 +215,12 @@ block content
     #merge-ex1
     .el#merge-ex2
     .el#merge-ex3
-  .note
-    :markdown
-      There's `merge()`, which grabs events from both streams. Here we've got a stream of red A's
-      and a stream of blue B's, and `merge` creates a new stream with all events on it.
+    .note
+      :markdown
+        There's `merge()`, which grabs events from both streams. Here we've got a stream of red A's
+        and a stream of blue B's, and `merge` creates a new stream with all events on it. This is
+        useful for instance if you have a search box with a button next to it. If you want to create
+        a stream of enter key presses and button clicks, `merge` is your function.
   .el
     h5: code .combine()
     script(type='x/on-enter') showCombineExample();
@@ -240,7 +238,7 @@ block content
         method you need to understand if you're going
         to do anything useful with Bacon: `flatMap()`. `flatMap()` takes a stream where each
         event is itself a stream, and puts all the values from all the streams it sees onto
-        a single stream. Here's an example.
+        a single stream. I know that sounds a little cryptic, so here's an example.
   .el
     h5: code .flatMap()
     script(type='x/on-enter') showFlatMapExample();
@@ -248,17 +246,18 @@ block content
     #flatmap-ex-urls
     .note
       :markdown
-        For instance, suppose we're getting URLs somehow---user input, some automated event
-        perhaps, it doesn't matter. One thing that's nice about Bacon is that you don't care
-        where your events come from; as long as they're of the type you're expecting, your
-        application will just work.
+        Suppose we're getting URLs somehow---user input, some automated event
+        perhaps, it doesn't matter.
     .el
-      #flatmap-ex-ajax-streams
+      //#flatmap-ex-ajax-streams
+      img(src='/img/metastream.png')
       .note
         :markdown
           We take these, and we map each URL to an AJAX call. An AJAX call is a perfect example
           of why a stream is a promise with added functionality. You make the request, and what
           you receive back is a representation of a future potential for response or error.
+          Bacon actually has a utility function that converts a promise into a Bacon stream, so
+          you can use it almost without thinking.
           
           You can see here that each URL has been mapped to a stream. I've just drawn the AJAX
           streams as arrows here, since it would get way out of control if I tried to actually
@@ -326,13 +325,13 @@ block content
           ...using one model, and passing events to your View. This is another dead-simple model,
           and probably most familiar to those of you who use...
     .el
-      code: pre model.on('change', =&gt; view.render(model.toJSON()))
+      code: pre model.on('change', () =&gt; view.render(model.toJSON()))
       .note
         :markdown
           ...something like this. The Bacon version of that is this:
     .el
       code: pre.
-        model.asEventStream('change').onValue(=&gt; view.render(model.toJSON()))
+        model.asEventStream('change').onValue( () =&gt; view.render(model.toJSON()))
       .note
         :markdown
           Or, to avoid re-rendering your entire view when you don't have to, maybe when you see an
@@ -346,7 +345,7 @@ block content
           .asBubbleStream({element:'#model-event-field-stream'})
       code: pre.
         model.asEventStream('change:name')
-          .onValue(=&gt; view.$('.name').text(model.get('name')))
+          .onValue( () =&gt; view.$('.name').text(model.get('name')))
       .note
         :markdown
           This gives you really fine-grained control over your updates, and you can render only the
@@ -373,44 +372,139 @@ block content
         Our chat app is just going to be one big chat room for the sake of simplicity.
   .el
     code: pre.
-      
-      var Message = Backbone.Model.extend();
-      
-      var ChatThread = Backbone.Collection.extend({
-        model: Message,
-        url: t => '/api/messages?since='+t,
-        initialize: function(){<span id="init-hilite">
-          this.poll = Bacon.interval(1000);
-          this.lastUpdate = this.poll
-            .map(=> +new Date())
-            .slidingWindow(2,2)
-            .map(x => x[1]);
-          this.lastUpdate.sampledBy(poll)
-            .flatMap(t => Backbone.fromPromise(
-              $.getJSON(this.url(t))
-            ))
-            .map(json => new Message(json))
-            .onValue(msg => this.push(msg));</span>
+      Message = Backbone.Model.extend({
+        send: function() {
+          return $.post('/api/message', this.get('content'));
         }
       });
-    .el: script(type='x/on-enter') $('#init-hilite').css({color:'#00b'});
-    .el: script(type='x/on-exit')  $('#init-hilite').css({color:'#000'});
   .el
-    #poll-interval
+    script.
+      $(function(){
+        window.socket.on('custom', function(data){
+          console.log(data);
+          if(data.initHilite){
+            console.log('#init-hilite-'+data.initHilite);
+            $('#chat-thread').addClass('dim');
+            $('#chat-thread span').css({color:''});
+            $('#init-hilite-'+data.initHilite).css({color:'#05a'});
+          }
+        });
+      });
+    code#chat-thread: pre.
+      ChatThread = Backbone.Collection.extend({
+        initialize: function() {<span id="init-hilite-1">
+          this.lastSync = this.asEventStream('request')
+            .scan(0, () =&gt; + new Date());</span><span id="init-hilite-2">
+          this.poll = Bacon.interval(2000);</span><span id="init-hilite-3">
+          return this.lastSync
+            .sampledBy(this.poll)</span><span id="init-hilite-4">
+            .map(function(time) {
+              return "/api/messages?since=" + time;
+            })</span><span id="init-hilite-5">.flatMap( (url) =&gt; {
+              this.trigger('request');
+              return Bacon.fromPromise($.getJSON(url));
+            })</span><span id="init-hilite-6">.flatMap(function(messages) {
+              return Bacon.fromArray(messages.map(function(json) {
+                return new Message(json);
+              }));
+            })</span><span id="init-hilite-7">.assign(this, 'push');</span>
+        }
+      });
+    .note
+      .ui.vertical.buttons
+        .ui.green.button(onclick="socket.emit('custom',{initHilite:1})") this.lastSync = ...
+        .ui.teal.button(onclick="socket.emit('custom',{initHilite:2})") this.poll = ...
+        .ui.blue.button(onclick="socket.emit('custom',{initHilite:3})") ...sampledBy
+        .ui.blue.button(onclick="socket.emit('custom',{initHilite:4})") ...map
+        .ui.blue.button(onclick="socket.emit('custom',{initHilite:5})") ...flatMap
+        .ui.blue.button(onclick="socket.emit('custom',{initHilite:6})") ...map
+        .ui.blue.button(onclick="socket.emit('custom',{initHilite:7})") ...assign
     .el
-      #poll-map-1
+      script(type='x/on-enter').
+        $('#chat-thread').addClass('dim');
+      script(type='x/on-exit').
+        $('#chat-thread').removeClass('dim');
+  .el
+    code: pre.
+      ChatThread = Backbone.Collection.extend
+        initialize: -&gt;
+          @lastSync = @asEventStream('request')
+            .scan 0, -&gt; +new Date()
+          @poll = Bacon.interval 5000
+          @lastSync.sampledBy @poll
+            .map (time) -&gt; "/api/messages?since=\#{time}"
+            .flatMap (url) -&gt;
+              Bacon.fromPromise $.getJSON(url)
+            .flatMap (messages) -&gt;
+              Bacon.fromArray messages.map (json) -&gt;
+                new Message(json)
+            .assign @, 'push'
+  .el
+    script(type='x/on-enter').
+      $('#chat-box').slideDown();
+      var chatThread = new ChatThread();
+      var view = new ChatThreadView({collection:chatThread});
+      $('#chat-box').append(view.$el);
+      $('#chat-box').append((new EntryView()).render().$el)
+  .el
+    h5 Further reading
     .el
-      #poll-slide
+      h5
+        :markdown
+          [Intro to Reactive Programming](https://gist.github.com/staltz/868e7e9bc2a7b8c1f754)
+      .note.
+        Intro to Reactive Programming is a gist that explains from the ground up what FRP is in
+        straightforward language. 
     .el
-      #poll-map-2
+      h5 
+        :markdown
+          [BaconJS documentation](http://baconjs.github.io)
+    .el: h5
+      :markdown
+        [RxJS](http://reactive-extensions.github.io/RxJS/)
+      .note
+        :markdown
+          RxJS is another implementation of FRP, and the one that the Intro to Reactive Programming
+          I've listed above uses for its examples.
+    .el: h5
+      :markdown
+        [Elm](http://elm-lang.org/)
+      .note
+        :markdown
+          Elm is a little language designed entirely around functional reactive programming. Elm
+          gives you these extremely short ways of writing functional reactive programs that compile
+          to JavaScript and run in the browser. Some of the examples are almost as hard to read as 
+          Haskell programs, but they're very beautiful little programs.
+    .el: h5
+      :markdown
+        [js-csp](https://github.com/jlongster/js-csp)
+      .note
+        :markdown
+          Finally, js-csp is a representative of another wildly different form of event handling.
+          It implements the communicating sequential processes paradigm, which looks a lot like
+          Goroutines, if anyone's played around with Google's Go language. I thought I'd include it
+          here in case any of you have already decided you don't like functional reactive and would
+          like to see what other directions you can explore for event handling.
+          
+          That's the whole presentation. I hope I've given you all a good overview of BaconJS,
+          how it plays nicely with Backbone, why you may or may not want to use it, and how to use
+          it. If anyone has any questions now, I'll be glad to take them.
         
   .shows-over End of presentation.
-      
+  
+  .ui.segment(style="display:none;")#chat-box
+    .ui.top.attached.label Chat thread
+    //.ui.bottom.attached.label.field(style="padding:0;")
+      .ui.small.action.input(style="width:100%;")
+        input(type="text", placeholder="Type your message")
+        .primary.ui.button Send
+  
   script(src='/socket.io/socket.io.js')
-  script(src='/js/vendor/jquery.js')
   script(src='/js/vendor/Bacon.js')
   script(src='/js/vendor/underscore.js')
   script(src='/js/vendor/backbone.js')
+  script(src='/js/backbone.eventstreams.js')
   script(src='/js/keychar.js')
   script(src='/js/bubbles.js')
   script(src='/js/prez.js')
+  script(src='/js/chat.js')

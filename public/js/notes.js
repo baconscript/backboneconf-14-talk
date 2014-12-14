@@ -1,5 +1,5 @@
 ;(function(){
-  var socket = io();
+  var socket = window.socket = io();
   var timerInterval, startTime, elapsed = 0;
   socket.on('ack', function(){
     $('#note').html('ready');

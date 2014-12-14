@@ -205,3 +205,19 @@ code, pre, tt, .stream code{
 td {
   vertical-align: top;
 }
+
+.dim{
+  color: #aaa;
+}
+
+#chat-box{
+  height: 50%;
+  position: fixed;
+  bottom: -24px;
+  right: 15px;
+  padding-top: 1.5em;
+  width: 20rem;
+  padding-bottom: 4em;
+  padding-left: 0;
+  padding-right:0;
+}
