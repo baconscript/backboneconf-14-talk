@@ -9,12 +9,10 @@ block content
     div(style='height:8rem;') &nbsp;
     .note
       :markdown
-        ### Did you turn off your screensaver?
-        
         Ladies and gentlemen, thank you all for coming. My name is Ryan Muller, and
-        I'm a software engineer at Novartis Institutes for Biomedical Research. I
-        write software that makes it easier for the scientists there to perform their
-        pharmaceutical research.
+        I'm a software engineer at Novartis. My job there is to write software that supports the
+        scientists in their drug discovery research. Our engineering department makes use of
+        Backbone in a wide array of projects.
 
         I'm here to talk about functional reactive programming and how you can leverage
         it in your Backbone applications. Before I dive in, though, I'm going to very
@@ -35,11 +33,20 @@ block content
       blockquote(style="clear:both;").
         Functional programming is a style of programming where functions take input and
         produce output without changing anything outside those functions.
+      small(style="float:right"): em &mdash;me
       .note.
         My definition is that functional programming is a style of programming where 
         functions take input and produce output without changing anything outside 
         those functions.
-      small(style="float:right"): em &mdash;me
+  .el(data-body-class='dark')
+    center(style="width:100%;"): img(src='/img/terrarium.jpg', style='max-height: 40%;')
+    .note.
+      It's like a sealed terrarium: the little ecosystem in a terrarium is entirely dependent on what you
+      put into it at the beginning. If you put too few plants or too little water, the ecosystem
+      will turn out very differently than if you put in the right number of plants or the right
+      amount of water. More importantly, the terrarium won't change global state. You won't have vines
+      growing all over your kitchen or bugs in your bedroom. It's entirely self-contained, just like
+      a pure function.
   .el(data-body-class='dark')
     table(style="width:100%;")
       tr: td(colspan=2): h4 Imperative vs. functional
@@ -48,32 +55,37 @@ block content
           h5 Imperative
           pre.
             var list = getListSomehow(),
-              newList = [];
+              sum = 0,
+              average;
             for(var i = 0; i &lt; list; i++){
-              newList[i] = list[i] + 1;
+              sum += list[i];
             }
+            average = sum / list.length;
         td(style="width:50%;"): .el
           h5 Functional
           pre.
             var list = getListSomehow(),
-              newList = list.map(x =&gt; x+1)
+              average = list
+                .reduce((a,b) =&gt; a+b)
+                  / list.length;
     .note
       :markdown
-        Here's a quick code sample. Let's say we have a list of numbers, and we want
-        to generate a new list whose values are one greater than those in the old list.
-        On the left we have the imperative version, or the "Java" version if you like.
-        Pretty familiar; loop through the list and increment your variables.
+        Here's a quick code sample. Let's say we want to take the average of a list of numbers.
+        On the right we have the imperative version. We're responsible for keeping track of state
+        through the loop, in this case using the `i` and `sum` variables.
         
         On the right we have the functional version. To create the new list, we simply
-        `map` over the old one. We go from our imperative version, in which we have to
-        keep track of state (in this case the `i` variable) to a declarative version,
-        which feels a little like "magic in, magic out".
+        `reduce` over the old one. You can see that we use this `reduce` function to neatly tuck
+        away all the details, and we're not left creating these temporary variables. This is a very
+        simple example; if you really want to see differences between declarative and imperative,
+        just find some code that's been written in Java and in Scala. The two languages each encourage
+        a very different style of coding.
   .el(data-body-class='dark')
     h3 In <em>declarative programming,</em> the focus is on <strong>what you want to do</strong>.
     h3 In <em>imperative programming,</em> the focus is on <strong>how you want to do it</strong>.
     .note
       :markdown
-        This is the main difference between imperative and functional programming.
+        My example highlights the main difference between imperative and functional programming.
         In functional programming, which is declarative, the focus is on <em>what you want to do</em>;
         in imperative programming, the focus is on <em>how you want to do it</em>.
   .el(data-body-class='dark')
@@ -112,11 +124,14 @@ block content
             JavaScript it feels a little like I'm writing assembly code, just because I get used to
             these abstractions that Bacon gives me.
             
-            I've talked enough about Bacon; now I'm going to give you all some examples.
-            
-            The central primitive in functional reactive programming is usually called an Observable
-            or a Signal. I prefer the term "immutable stream" because it fully describes what you're
-            working with.
+            I've talked enough about things other than BaconJS; now I'm going to give you all some 
+            examples.
+  .el(data-body-class='dark')
+    .note
+      :markdown
+        The central primitive in functional reactive programming is usually called an Observable
+        or a Signal. I prefer the term "immutable stream" because it fully describes what you're
+        working with.
   .el(data-body-class="dark")
     h3
       :markdown
@@ -221,6 +236,15 @@ block content
         and a stream of blue B's, and `merge` creates a new stream with all events on it. This is
         useful for instance if you have a search box with a button next to it. If you want to create
         a stream of enter key presses and button clicks, `merge` is your function.
+    .el 
+      .ui.small.action.input(style="width:100%;")
+        input(type="text", placeholder="Enter search term")
+        .orange.ui.button Search
+      .code: pre.
+        $('search-field').asEventStream('keyup')
+          .filter(x =&gt; x.keyCode === 13)
+          .merge( $('#search-btn').asEventStream('click') )
+          .onValue(search);
   .el
     h5: code .combine()
     script(type='x/on-enter') showCombineExample();
@@ -250,7 +274,7 @@ block content
         perhaps, it doesn't matter.
     .el
       //#flatmap-ex-ajax-streams
-      img(src='/img/metastream.png')
+      center(style="width:100%;"): img(src='/img/metastream.png')
       .note
         :markdown
           We take these, and we map each URL to an AJAX call. An AJAX call is a perfect example
@@ -258,6 +282,9 @@ block content
           you receive back is a representation of a future potential for response or error.
           Bacon actually has a utility function that converts a promise into a Bacon stream, so
           you can use it almost without thinking.
+          
+          I could have done this example as an animation like the others as well, but frankly I
+          couldn't get it to look right with CSS, so here's a static image.
           
           You can see here that each URL has been mapped to a stream. I've just drawn the AJAX
           streams as arrows here, since it would get way out of control if I tried to actually
@@ -313,17 +340,16 @@ block content
         when you have a very simple model, such as a model that knows about temperature and
         cloud cover, for example. However, if they all fundamentally represent the same thing,
         you might want to consider...
-    .el
-      #model-event-stream
-      script(type='x/on-enter').
-        Bacon.interval(2500, 'change')
-          .name('model.asEventStream("change")')
-          .asBubbleStream({element:'#model-event-stream'})
-      
-      .note
-        :markdown
-          ...using one model, and passing events to your View. This is another dead-simple model,
-          and probably most familiar to those of you who use...
+  .el
+    #model-event-stream
+    script(type='x/on-enter').
+      Bacon.interval(2500, 'change')
+        .name('model.asEventStream("change")')
+        .asBubbleStream({element:'#model-event-stream'})
+    .note
+      :markdown
+        ...using one model, and passing events to your View. This is another dead-simple model,
+        and probably most familiar to those of you who use...
     .el
       code: pre model.on('change', () =&gt; view.render(model.toJSON()))
       .note
@@ -331,7 +357,8 @@ block content
           ...something like this. The Bacon version of that is this:
     .el
       code: pre.
-        model.asEventStream('change').onValue( () =&gt; view.render(model.toJSON()))
+        model.asEventStream('change')
+          .onValue( () =&gt; view.render(model.toJSON()))
       .note
         :markdown
           Or, to avoid re-rendering your entire view when you don't have to, maybe when you see an
@@ -449,35 +476,32 @@ block content
   .el
     h5 Further reading
     .el
-      h5
-        :markdown
-          [Intro to Reactive Programming](https://gist.github.com/staltz/868e7e9bc2a7b8c1f754)
+      h5: a(href='https://gist.github.com/staltz/868e7e9bc2a7b8c1f754') The intro to Reactive Programming you've been missing
       .note.
-        Intro to Reactive Programming is a gist that explains from the ground up what FRP is in
-        straightforward language. 
+        "The intro to Reactive Programming you've been missing" is a gist that explains from the 
+        ground up what FRP is in straightforward language. 
     .el
-      h5 
-        :markdown
-          [BaconJS documentation](http://baconjs.github.io)
-    .el: h5
-      :markdown
-        [RxJS](http://reactive-extensions.github.io/RxJS/)
+      h5: a(href='http://baconjs.github.io') BaconJS documentation
+      .note.
+        The BaconJS documentation, of course, is a great place to look. There are a handful of examples
+        of most methods, and the homepage has two fully-working examples that give a really good idea
+        of how to use all these methods in conjunction with one another.
+    .el
+      h5: a(href='http://reactive-extensions.github.io/RxJS/') RxJS
       .note
         :markdown
           RxJS is another implementation of FRP, and the one that the Intro to Reactive Programming
           I've listed above uses for its examples.
-    .el: h5
-      :markdown
-        [Elm](http://elm-lang.org/)
+    .el
+      h5: a(href='http://elm-lang.org/') Elm
       .note
         :markdown
           Elm is a little language designed entirely around functional reactive programming. Elm
           gives you these extremely short ways of writing functional reactive programs that compile
           to JavaScript and run in the browser. Some of the examples are almost as hard to read as 
           Haskell programs, but they're very beautiful little programs.
-    .el: h5
-      :markdown
-        [js-csp](https://github.com/jlongster/js-csp)
+    .el
+      h5: a(href='https://github.com/jlongster/js-csp') js-csp
       .note
         :markdown
           Finally, js-csp is a representative of another wildly different form of event handling.

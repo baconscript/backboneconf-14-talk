@@ -83,7 +83,7 @@ MessageView = Backbone.View.extend({
   },
   render: function() {
     var html;
-    html = "<div class=\"label\"><img style='float:left;max-width:50px;border-radius:50%;margin:3px;'></div>\n<div class=\"content\"></div>";
+    html = "<div class=\"label\"><img style='float:left;max-width:50px;border-radius:50%;margin:3px;'></div>\n<div class=\"content\" style='color:black;'></div>";
     this.$el.addClass('event').html(html).css({
       clear: 'both',
       padding: '2px'
