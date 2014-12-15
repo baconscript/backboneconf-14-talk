@@ -38,7 +38,7 @@ block content
         My definition is that functional programming is a style of programming where 
         functions take input and produce output without changing anything outside 
         those functions.
-  .el(data-body-class='dark')
+  //.el(data-body-class='dark')
     center(style="width:100%;"): img(src='/img/terrarium.jpg', style='max-height: 40%;')
     .note.
       It's like a sealed terrarium: the little ecosystem in a terrarium is entirely dependent on what you
@@ -381,6 +381,33 @@ block content
           Now, these examples in and of themselves are fairly useless. The power comes when you want
           to compose them or modify them. If you already have your application running on streams,
           it becomes trivial to change the way the streams flow through your application.
+  .el
+    table(style="width:100%;"): tr
+      td(style="width:50%;")
+        h5 Client-side
+        code: pre.
+          socket = io();
+          model = new Thing();
+          
+          model.asEventStream('change').onValue(function(model){
+            socket.emit('change', model.changed);
+          });
+          socket.on('change', function(delta){
+            model.set(delta, {silent:true});
+          });
+      td(style="width:50%;")
+        h5 Server-side
+        code: pre.
+          io = require('socket.io')(server)
+          
+          io.on('connection', function(socket){
+            socket.on('change', function(delta){
+              io.emit('delta');
+            });
+          });
+    .note
+      :markdown
+        One of the coolest things you can do is incorporate streams with websockets. 
   .el(data-body-class='dark')
     .note Ok. Let's make an app.
   .el(data-body-class='dark')
@@ -388,22 +415,23 @@ block content
     p
       :markdown
         * **GET** `/api/messages?since=<timestamp>` -- fetches messages sent to the server since the given time
-        * **GET** `/api/user-events?since=<timestamp>` -- fetches user joins/leaves and statuses
-        * **POST** `/api/message` `<message text>` -- post a message
-        * **POST** `/api/typing` -- tell the server that the user is typing
-        * **POST** `/api/status` `<status text>` -- update status
+        * **POST** `/api/message` `{message:<message>}` -- post a message
     .note
       :markdown
         Suppose you've got an API like this one that's already been written. In reality, WebSockets
         would be the way to go, but for the sake of example, our app is going to work by polling.
-        Our chat app is just going to be one big chat room for the sake of simplicity.
+        Also, our chat app is just going to be one big chat room for the sake of simplicity.
   .el
     code: pre.
       Message = Backbone.Model.extend({
         send: function() {
-          return $.post('/api/message', this.get('content'));
+          return $.post('/api/message', {message:this.get('content')});
         }
       });
+    .note.
+      Here's our Message model. It's very simple; it's only got a `send` function hard-coded into
+      it. I'd use the Backbone methods if this were a CRUD app, but a chat server isn't quite
+      amenable to a CRUD model.
   .el
     script.
       $(function(){
@@ -430,10 +458,10 @@ block content
             })</span><span id="init-hilite-5">.flatMap( (url) =&gt; {
               this.trigger('request');
               return Bacon.fromPromise($.getJSON(url));
-            })</span><span id="init-hilite-6">.flatMap(function(messages) {
-              return Bacon.fromArray(messages.map(function(json) {
+            })</span><span id="init-hilite-6">.map(function(messages) {
+              return messages.map(function(json) {
                 return new Message(json);
-              }));
+              });
             })</span><span id="init-hilite-7">.assign(this, 'push');</span>
         }
       });
