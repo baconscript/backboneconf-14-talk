@@ -69,6 +69,7 @@ var messages = [],
   messagesRunning = false;
 
 function makeMessage(){
+  console.log('new message');
   var content = ipsum(),
     user = randUser();
   return {

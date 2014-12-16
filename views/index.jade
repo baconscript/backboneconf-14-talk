@@ -6,10 +6,11 @@ block content
     img(style='float:left;', src='/img/waterfall1.gif')  
     h1 Go with the flow
     h3: em Backbone and Streams
+    h5: a(href="http://twitter.com/_baconscript") @_baconscript
     div(style='height:8rem;') &nbsp;
     .note
       :markdown
-        Ladies and gentlemen, thank you all for coming. My name is Ryan Muller, and
+        My name is Ryan Muller, and
         I'm a software engineer at Novartis. My job there is to write software that supports the
         scientists in their drug discovery research. Our engineering department makes use of
         Backbone in a wide array of projects.
@@ -298,34 +299,55 @@ block content
           showed earlier.
   .el
     code: pre(style='text-align:center;').
-      map() filter() reduce() scan() flatMap()
+      map() filter() reduce() scan() 
+      take() diff()
+      flatMap() flatMapLatest()
       delay() throttle() bufferingThrottle()
     .note
       :markdown
         All this vocabulary---`map`, `filter`, `merge`, `flatMap`, and friends---makes up
-        almost a domain-specific language. Naturally, this is one reason why you may want
-        to consider *not* using FRP; it makes it a bit more difficult for people to jump
-        into your codebase.
+        almost a whole new language in its own right, with its own control flow. The fact that you have this new control
+        flow means you have to fundamentally attack your problems in a different way. Naturally, this is one reason why
+        you may want to consider *not* using FRP. It's got a steep initial learning curve. Because the streams are
+        immutable, you have to get away from the idea of variables and focus more on events. It's awesome once you've
+        mastered the basic concepts, but until then it sucks a bit. I can compare it to learning Vim or Emacs---you're
+        going to go through a period of really horrible non-productivity while you're learning, but then once you've
+        paid your dues you gain these superpowers.
         
-        In addition, the fact that all streams are immutable after creation means that you
-        really can't think about problems in the same way. You no longer think in terms of
-        past, present, and future; I find that you're sort of stuck in a perpetual present
-        and are more concerned with "what's going on over here" and "what's going on over
-        there". This is another issue with FRP and Bacon, specifically that it's got a high
-        barrier to entry.
+        A side effect of this is that you also have to learn the vocabulary. If you sit down and read through the
+        documentation a couple of times, you'll get a good feel for the types of things Bacon does and does not do.
+        Again, to compare it to Underscore: when I was learning Underscore, I'd think of a function like `every()` or
+        `any()` that just seemed like it was the "kind of function" that Underscore "would have", and I'd check the
+        docs and sure enough I'd find it. Bacon has the same kind of thing where you get a feel for it and you learn
+        the types of functions that Bacon might provide. I guess, to stick with the theme of the conference, you could
+        say that Bacon has a flavor.
         
-        For these reasons, Bacon works best on new projects, not on updates. Of course, you
-        could use Bacon to update a legacy project, but---especially if someone else is
-        working on the same code---it could potentially bar other people from modifying your
-        code. (Of course, sometimes that's a good thing.)
+        Now, pure functional programming is great if you're an academic, but ultimately you really do need to have some
+        effect on the real world. &rarr;
+  .el
+    center(style="position:fixed;top:0;bottom:0;left:0;right:0;vertical-align:middle;")
+      <blockquote class="twitter-tweet" lang="en"><p>This is your reminder that the DOM is actually a giant, mutable, global variable in the middle of your program. Act accordingly.</p>&mdash; Marco Rogers (@polotek) <a href="https://twitter.com/polotek/status/543590973846999040">December 13, 2014</a></blockquote>
+      <script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+    .note
+      :markdown
+        &rarr; As the joke goes, the reason pure functional programs have no global effects is
+        because nobody runs them. As a result &rarr;
+  .el(data-body-class='dark')
+    h4 The Great Divide
+    table(style='width:100%;'): tr
+      td(style='width:50%;border-right:1px solid white;')
+        h5 Bacon streams
+      td(style='width:50%;')
+        h5 Backbone
+    .note
+      :markdown
+        &rarr; you need to have some place in your application where you stop using functional programming and start
+        having some sort of global state. By far, the easiest place to do this division is to have Bacon.js handle
+        internals, and to have Backbone models keep track of their own state. Bacon becomes this sort of tucked-away
+        plumbing, and your Backbone models simply work.
         
-        > There's another way in which Bacon can be quite a lot to adjust to: when you tend
-        > to make extensive use of closures. Whenever you're converting code with a lot of
-        > variables being passed through closures, you'll need to either make streams for
-        > groups of variables depending on how they're being used, or else 
-        
-        There are basically infinite ways you can incorporate Bacon and Backbone, much like
-        there are nearly infinite ways to use Backbone by itself.
+        I'm going to now go through a few recipes for combining Bacon with Backbone: some good, some bad. I'm starting
+        off with the bad one.
   .el#bb-stream-slide
     script(type='x/on-enter').
       Bacon.interval(2500, 'Backbone.Model')
@@ -336,10 +358,10 @@ block content
     #model-stream
     .note
       :markdown
-        One of the simplest is to use a stream of models to update a View. This is really nice
-        when you have a very simple model, such as a model that knows about temperature and
-        cloud cover, for example. However, if they all fundamentally represent the same thing,
-        you might want to consider...
+        One of the simplest is to use a stream of models to update a View. This is honestly a little insulting to
+        Backbone. You've got these rich models which know things about themselves and can update themselves on the
+        server, and here they're performing the same essential task as a plain JavaScript hash could. A better
+        way is to...
   .el
     #model-event-stream
     script(type='x/on-enter').
@@ -348,7 +370,7 @@ block content
         .asBubbleStream({element:'#model-event-stream'})
     .note
       :markdown
-        ...using one model, and passing events to your View. This is another dead-simple model,
+        ...use one model, and passing events to your View. This is another dead-simple model,
         and probably most familiar to those of you who use...
     .el
       code: pre model.on('change', () =&gt; view.render(model.toJSON()))
@@ -361,6 +383,15 @@ block content
           .onValue( () =&gt; view.render(model.toJSON()))
       .note
         :markdown
+          This is useful for updating your views, but it's also useful if you have multiple people pontentially editing
+          a resource and you want to prevent conflicts. If instead of updating a view, you want to sync with a server,
+          you can send these change events. If the server is receiving change events from multiple users, then you can
+          decide at the server level how to resolve any conflicts and send the results back out to the users.
+          
+          In the context of the previous talk, you could actually even write your events to localStorage during any
+          period when your app is offline. When your app reconnects with the server, it can just send up all the events
+          from localStorage, and the server can decide what to do about conflicts at that point.
+          
           Or, to avoid re-rendering your entire view when you don't have to, maybe when you see an
           update you perform a jQuery selection and only update a particular portion of your view. 
           You can replace that with this:
@@ -421,29 +452,19 @@ block content
         Suppose you've got an API like this one that's already been written. In reality, WebSockets
         would be the way to go, but for the sake of example, our app is going to work by polling.
         Also, our chat app is just going to be one big chat room for the sake of simplicity.
-  .el
-    code: pre.
-      Message = Backbone.Model.extend({
-        send: function() {
-          return $.post('/api/message', {message:this.get('content')});
-        }
-      });
-    .note.
-      Here's our Message model. It's very simple; it's only got a `send` function hard-coded into
-      it. I'd use the Backbone methods if this were a CRUD app, but a chat server isn't quite
-      amenable to a CRUD model.
+        
   .el
     script.
       $(function(){
-        window.socket.on('custom', function(data){
-          console.log(data);
-          if(data.initHilite){
-            console.log('#init-hilite-'+data.initHilite);
-            $('#chat-thread').addClass('dim');
-            $('#chat-thread span').css({color:''});
-            $('#init-hilite-'+data.initHilite).css({color:'#05a'});
-          }
-        });
+      window.socket.on('custom', function(data){
+      console.log(data);
+      if(data.initHilite){
+      console.log('#init-hilite-'+data.initHilite);
+      $('#chat-thread').addClass('dim');
+      $('#chat-thread span').css({color:''});
+      $('#init-hilite-'+data.initHilite).css({color:'#05a'});
+      }
+      });
       });
     code#chat-thread: pre.
       ChatThread = Backbone.Collection.extend({
@@ -460,9 +481,9 @@ block content
               return Bacon.fromPromise($.getJSON(url));
             })</span><span id="init-hilite-6">.map(function(messages) {
               return messages.map(function(json) {
-                return new Message(json);
-              });
-            })</span><span id="init-hilite-7">.assign(this, 'push');</span>
+              return new Message(json);
+            });
+          })</span><span id="init-hilite-7">.assign(this, 'push');</span>
         }
       });
     .note
@@ -476,9 +497,30 @@ block content
         .ui.blue.button(onclick="socket.emit('custom',{initHilite:7})") ...assign
     .el
       script(type='x/on-enter').
-        $('#chat-thread').addClass('dim');
-      script(type='x/on-exit').
-        $('#chat-thread').removeClass('dim');
+        $('#chat-box').slideDown();
+        var chatThread = new ChatThread();
+        var view = new ChatThreadView({collection:chatThread});
+        $('#chat-box').append(view.$el);
+        $('#chat-box').append((new EntryView()).render().$el)
+  .el
+    code: pre.
+      Message = Backbone.Model.extend({
+        send: function() {
+          return $.post('/api/message', {message:this.get('content')});
+        }
+      });
+    .note.
+      Here's our Message model. It's very simple; it's only got a `send` function hard-coded into
+      it. I'd use the Backbone methods if this were a CRUD app, but a chat server isn't quite
+      amenable to a CRUD model.
+  .el
+    h5 Meanwhile, in our View...
+    code: pre.
+      var keyup = $('#input-field').asEventStream('keyup');
+      var clicks = $('#send-button')
+      keyup.filter(x =&gt; x===13)
+        .merge(clicks)
+        .onValue(() =&gt; this.message.send())
   .el
     code: pre.
       ChatThread = Backbone.Collection.extend
@@ -494,13 +536,6 @@ block content
               Bacon.fromArray messages.map (json) -&gt;
                 new Message(json)
             .assign @, 'push'
-  .el
-    script(type='x/on-enter').
-      $('#chat-box').slideDown();
-      var chatThread = new ChatThread();
-      var view = new ChatThreadView({collection:chatThread});
-      $('#chat-box').append(view.$el);
-      $('#chat-box').append((new EntryView()).render().$el)
   .el
     h5 Further reading
     .el
@@ -522,6 +557,7 @@ block content
           I've listed above uses for its examples.
     .el
       h5: a(href='http://elm-lang.org/') Elm
+      h5: a(href='https://github.com/matz/streem') Streem
       .note
         :markdown
           Elm is a little language designed entirely around functional reactive programming. Elm
