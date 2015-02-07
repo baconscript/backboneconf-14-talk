@@ -455,17 +455,6 @@ block content
         
   .el
     script.
-      $(function(){
-      window.socket.on('custom', function(data){
-      console.log(data);
-      if(data.initHilite){
-      console.log('#init-hilite-'+data.initHilite);
-      $('#chat-thread').addClass('dim');
-      $('#chat-thread span').css({color:''});
-      $('#init-hilite-'+data.initHilite).css({color:'#05a'});
-      }
-      });
-      });
     code#chat-thread: pre.
       ChatThread = Backbone.Collection.extend({
         initialize: function() {<span id="init-hilite-1">
@@ -487,14 +476,6 @@ block content
         }
       });
     .note
-      .ui.vertical.buttons
-        .ui.green.button(onclick="socket.emit('custom',{initHilite:1})") this.lastSync = ...
-        .ui.teal.button(onclick="socket.emit('custom',{initHilite:2})") this.poll = ...
-        .ui.blue.button(onclick="socket.emit('custom',{initHilite:3})") ...sampledBy
-        .ui.blue.button(onclick="socket.emit('custom',{initHilite:4})") ...map
-        .ui.blue.button(onclick="socket.emit('custom',{initHilite:5})") ...flatMap
-        .ui.blue.button(onclick="socket.emit('custom',{initHilite:6})") ...map
-        .ui.blue.button(onclick="socket.emit('custom',{initHilite:7})") ...assign
     .el
       script(type='x/on-enter').
         $('#chat-box').slideDown();
@@ -587,7 +568,6 @@ block content
         input(type="text", placeholder="Type your message")
         .primary.ui.button Send
   
-  script(src='/socket.io/socket.io.js')
   script(src='/js/vendor/Bacon.js')
   script(src='/js/vendor/underscore.js')
   script(src='/js/vendor/backbone.js')

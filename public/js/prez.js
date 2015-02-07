@@ -10,32 +10,12 @@
   })();
   var $currentSlide = $($slides[currentSlide]);
 
-  var socket = window.socket = io.connect(document.location.origin);
-
-  var keyup = window.keyup = $('body').asEventStream('keyup').map(x => x.which)
-    .merge(Bacon.fromEventTarget(socket, 'keyup'));
+  var keyup = window.keyup = $('body').asEventStream('keyup').map(function(x){return x.which});
 
   keyup.filter(function(x){return x===39 || x===40})
-    .merge(Bacon.fromEventTarget(socket, 'next')).log()
     .onValue(advanceSubslide);
   keyup.filter(function(x){return x===37 || x===38})
-    .merge(Bacon.fromEventTarget(socket, 'back'))
     .onValue(retreatSubslide);
-
-  Bacon.fromEventTarget(socket, 'font-size')
-    .scan(+$('html').css('font-size').match(/[\d.]+/)[0], function(last, delta){
-      return last + delta;
-    }).onValue(function(size){
-      $('html').css('font-size', size+'px');
-    });
-
-  Bacon.fromEventTarget(socket, 'refresh').onValue(function(){
-    document.location.reload();
-  });
-  Bacon.fromEventTarget(socket, 'restart').onValue(function(){
-    document.location.hash = '#0';
-    document.location.reload();
-  });
 
   $('.el').hide();
   setTimeout(runEntryScript, 1000);
@@ -60,7 +40,6 @@
     $s.slideDown(function(){});
     var $note = $currentSlide.children('.note');
     if($note.length){
-      socket.emit('note',{note:$note.first().html()});
     }
     if(history.pushState){
       history.pushState(null, null, '#'+currentSlide);
@@ -91,7 +70,6 @@
       }
       var $note = $el.children('.note');
       if($note.length){
-        socket.emit('note',{note:$note.first().html()});
       }
     } else {
       advanceSlide();
@@ -121,18 +99,11 @@
       if($e.length === 1){
         var $note = $currentSlide.children('.note');
         if($note.length){
-          socket.emit('note',{note:$note.first().html()});
         }
       }
     } else {
       retreatSlide();
     }
   }
-
-  socket.on('custom', function(data){
-    if(data==='hide chat'){
-      $('#chat-box').slideUp();
-    }
-  });
 
 })();

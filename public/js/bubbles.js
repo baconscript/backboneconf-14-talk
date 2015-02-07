@@ -157,15 +157,15 @@ $(function(){
     }
   }
 
-  var keyup = window.keyup.map(mapKeycodes).name("$('body').asEventStream('keyup')"),
-    keys11 = keyup.slidingWindow(11).map(x => x.join('')).withDescription(keyup, 'map', 'x => x.join("")'),
-    konami = keys11.filter(x => x === '↑↑↓↓←→←→ba↩').withDescription(keys11, 'filter', "x => x === '↑↑↓↓←→←→ba↩'"),
+  var keyup = window.keyup.map(mapKeycodes).name("$('body').asEventStream('keyup') // try pressing some keys"),
+    keys11 = keyup.slidingWindow(11).map(function(x){return x.join('')}).withDescription(keyup, 'map', 'x => x.join("")'),
+    konami = keys11.filter(function(x){return x === '↑↑↓↓←→←→ba↩'}).withDescription(keys11, 'filter', "x => x === '↑↑↓↓←→←→ba↩'"),
     weather = Bacon.fromBinder(weatherBinder(0.3)).name('weather'),
     weather3 = Bacon.fromBinder(weatherBinder()).name('weather').take(3),
     weatherGood = Bacon.fromBinder(weatherBinder()).name('weather'),
-    weatherFilter = weatherGood.filter(t => t>41)
+    weatherFilter = weatherGood.filter(function(t){return t>41})
       .withDescription(weather,'filter',"t => (t >= 41)"),
-    weatherMap = weatherFilter.map(t => t+"&deg; F")
+    weatherMap = weatherFilter.map(function(t){return t+"&deg; F"})
       .withDescription(weatherFilter,'map','t => t+"&deg; F"'),
     mergeA = Bacon.interval(2000,'A').name('stream1'),
     mergeB = Bacon.interval(2000,'B').delay(1000).name('stream2'),
