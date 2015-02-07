@@ -8,6 +8,7 @@ Message = Backbone.Model.extend({
 
 ChatThread = Backbone.Collection.extend({
   initialize: function() {
+    return;
     this.lastSync = this.asEventStream('request').scan(0, function() {
       return +new Date();
     });
