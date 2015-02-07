@@ -1,0 +1,278 @@
+<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"><title></title><link rel="stylesheet" href="./css/semantic.min.css"><link rel="stylesheet" href="./css/style.css"><meta name="mobile-web-app-capable" content="yes"></head><body><script src="./js/vendor/jquery.js"></script><div data-body-class="dark" class="el title-slide"><img style="float:left;" src="./img/waterfall1.gif"><h1>Go with the flow</h1><h3><em>Backbone and Streams</em></h3><h5><a href="http://twitter.com/_baconscript">@_baconscript</a></h5><div style="height:8rem;">&nbsp;</div><div class="note"><p>My name is Ryan Muller, and
+I&#39;m a software engineer at Novartis. My job there is to write software that supports the
+scientists in their drug discovery research. Our engineering department makes use of
+Backbone in a wide array of projects.</p>
+<p>I&#39;m here to talk about functional reactive programming and how you can leverage
+it in your Backbone applications. Before I dive in, though, I&#39;m going to very
+briefly introduce functional programming to set the stage for some of the points
+I want to make later.</p>
+</div></div><div data-body-class="dark" class="el"><h4>Functional programming</h4><blockquote id="func-p1">Functional programming is a paradigm that treats computation as the evaluation of
+mathematical functions and avoids state changes and mutable data.</blockquote><small style="float:right" class="el"><em>&mdash;Wikipedia</em></small><div class="note">Very brief overview: The official definition of FP is that it's a paradigm that
+treats computation as the evaluation of mathematical functions and avoids state
+changes and mutable data. I don't really like that definition, but it's from
+Wikipedia, so it must be true.</div><div class="el"><blockquote style="clear:both;">Functional programming is a style of programming where functions take input and
+produce output without changing anything outside those functions.</blockquote><small style="float:right"><em>&mdash;me</em></small><div class="note">My definition is that functional programming is a style of programming where 
+functions take input and produce output without changing anything outside 
+those functions.</div></div></div><!--.el(data-body-class='dark')center(style="width:100%;"): img(src='/img/terrarium.jpg', style='max-height: 40%;')
+.note.
+  It's like a sealed terrarium: the little ecosystem in a terrarium is entirely dependent on what you
+  put into it at the beginning. If you put too few plants or too little water, the ecosystem
+  will turn out very differently than if you put in the right number of plants or the right
+  amount of water. More importantly, the terrarium won't change global state. You won't have vines
+  growing all over your kitchen or bugs in your bedroom. It's entirely self-contained, just like
+  a pure function.--><div data-body-class="dark" class="el"><table style="width:100%;"><tr><td colspan="2"><h4>Imperative vs. functional</h4></td></tr><tr><td style="width:50%;"><div class="el"><h5>Imperative</h5><pre>var list = getListSomehow(),
+  sum = 0,
+  average;
+for(var i = 0; i &lt; list; i++){
+  sum += list[i];
+}
+average = sum / list.length;</pre></div></td><td style="width:50%;"><div class="el"><h5>Functional</h5><pre>var list = getListSomehow(),
+  average = list
+    .reduce((a,b) =&gt; a+b)
+      / list.length;</pre></div></td></tr></table><div class="note"><p>Here&#39;s a quick code sample. Let&#39;s say we want to take the average of a list of numbers.
+On the right we have the imperative version. We&#39;re responsible for keeping track of state
+through the loop, in this case using the <code>i</code> and <code>sum</code> variables.</p>
+<p>On the right we have the functional version. To create the new list, we simply
+<code>reduce</code> over the old one. You can see that we use this <code>reduce</code> function to neatly tuck
+away all the details, and we&#39;re not left creating these temporary variables. This is a very
+simple example; if you really want to see differences between declarative and imperative,
+just find some code that&#39;s been written in Java and in Scala. The two languages each encourage
+a very different style of coding.</p>
+</div></div><div data-body-class="dark" class="el"><h3>In <em>declarative programming,</em> the focus is on <strong>what you want to do</strong>.</h3><h3>In <em>imperative programming,</em> the focus is on <strong>how you want to do it</strong>.</h3><div class="note"><p>My example highlights the main difference between imperative and functional programming.
+In functional programming, which is declarative, the focus is on <em>what you want to do</em>;
+in imperative programming, the focus is on <em>how you want to do it</em>.</p>
+</div></div><div data-body-class="dark" class="el"><h4>The vocabulary of Underscore</h4><div class="note">In 2010, we got the 1.0 release of Underscore, which brought all these lovely functional bits
+to JavaScript. We gained a powerful vocabulary that allowed us to specify just what we want
+to do, and rely on Underscore to take care of the fiddly details. We've got:</div><div class="defs"><div class="el"><h5>map</h5><p>Converts values</p><div class="note"><p>map to convert values
+filter to remove values
+reduce to summarize, and so on, and so forth.</p>
+</div></div><div class="el"><h5>filter</h5><p>Removes values</p></div><div class="el"><h5>reduce</h5><p>Summarizes values</p></div><div class="el"><h5>findWhere</h5><p>Locates values</p></div><div class="el"><h5>any</h5><p>Checks existence of values</p><div class="note"><p>To me, functional reactive programming (FRP) is a very natural next step. The BaconJS
+documentation looks very much like the Underscore documentation, in that it gives us
+a vocabulary with which we build programs. Once you get used to using this vocabulary,
+though, you do get a bit spoiled. Personally, when I switch from BaconJS to plain 
+JavaScript it feels a little like I&#39;m writing assembly code, just because I get used to
+these abstractions that Bacon gives me.</p>
+<p>I&#39;ve talked enough about things other than BaconJS; now I&#39;m going to give you all some 
+examples.</p>
+</div></div></div></div><div data-body-class="dark" class="el"><div class="note"><p>The central primitive in functional reactive programming is usually called an Observable
+or a Signal. I prefer the term &quot;immutable stream&quot; because it fully describes what you&#39;re
+working with.</p>
+</div></div><div data-body-class="dark" class="el"><h3><p>A <em>stream</em> is a series of related <strong>events</strong> and <strong>errors</strong> that <strong>may terminate</strong>.</p>
+</h3><div class="note"><p><em>Streams</em> are pretty straightforward: a stream
+is a series of related events and errors that may terminate. Here&#39;s an
+example:</p>
+</div></div><div class="el"><div id="key-stream"></div><div class="note"><p>This is a stream of <code>keyup</code> events, which is very easy to generate using Bacon.</p>
+<p>Events can wrap any JavaScript value: booleans, numbers, objects, and even
+Bacon streams.</p>
+<input></div><div class="el"><div id="sample-error"></div><div class="note"><p>Streams may also have errors in them. Let&#39;s suppose for a second that the
+stream here represents a particularly unreliable weather API. The X&#39;s
+represent AJAX errors, which you would want to handle differently in your
+application. It&#39;s Bacon&#39;s try/catch. If you&#39;re used to promises, just think
+of a stream as a promise that can resolve more than once.</p>
+</div></div><div class="el"><div id="sample-end"></div><script type="x/on-enter">var weather3 = Bacon.fromBinder(weatherBinder()).name('weather').take(3);
+weather3.asBubbleStream({element:'#sample-end'});</script><div class="note"><p>Finally, we have a stream here that emits a couple of values, then ends.
+Once a stream has ended, it emits a special &quot;end&quot; event and nothing more.</p>
+<p>Now, I mentioned that these are immutable. You can&#39;t change a stream once
+you&#39;ve created it, but you can perform operations on streams to create
+new ones, in precisely the same way you operate over collections using Underscore.</p>
+</div></div></div><div class="el"><div id="weather-good"></div><div class="note"><p>So here we&#39;ve got another weather report stream. Really this is all just random numbers, but
+suppose for a minute.</p>
+</div><div class="el"><div id="weather-filter"></div><div class="note"><p>Now I&#39;ve taken it and filtered it to create a slightly
+nicer weather forecast. If it&#39;s colder than 41 degrees out, then I don&#39;t
+want to know. Our original stream hasn&#39;t been altered at all, we&#39;ve just created 
+a new one with the information we&#39;re interested in.</p>
+</div></div><div class="el"><div id="weather-map"></div><div class="note"><p>Now we take that and format it slightly. We can take this stream and
+update a <code>div</code> directly with it; Bacon&#39;s API gives us...</p>
+</div></div><div class="el"><code><pre>weather.filter(t =&gt; (t &gt;= 41))
+  .map(t =&gt; t+"&amp;deg; F")
+  .assign($('#temp-display'),'html');</pre></code><h3 style="float:right;position:absolute;top:-0.5rem;right:0;padding-top:0;" id="temp-display"></h3><div class="note"><p>...an easy way to directly update our <code>div</code>. You can take a stream and use <code>assign</code> on
+it to make it have side-effects; in this case, updating HTML content.</p>
+</div></div></div><div class="el"><div id="scan-1"></div><div class="el"><script type="x/on-enter">showScan();</script><div id="scan-2"></div></div><div class="note"><p>Reduce also has a parallel in Bacon: it&#39;s <code>scan</code>. Here I&#39;m taking a stream of numbers and
+using scan to create a real-time updating sum. There&#39;s also another function called
+<code>reduce</code> which will wait until your stream closes and emit a single reduced value. Both are
+analagous to Underscore&#39;s <code>reduce</code> function, it&#39;s just that <code>scan</code> constantly updates and
+<code>reduce</code> emits a single value at the end. Both are useful in different scenarios.</p>
+<p>One point I&#39;d like to make about <code>scan</code> is that it creates a special kind of stream which
+Bacon calls a Property. Properties and streams are very similar, but conceptually they 
+differ. A stream is considered to be a series of discrete, separate events, whereas a
+Property is one continuous value that changes over time. Bacon treats them mostly the same,
+but there are a couple of cases in which they differ.</p>
+<p>Bacon also provides us with a couple of ways to combine events from multiple streams.</p>
+</div></div><div class="el"><h5><code>.merge()</code></h5><script type="x/on-enter">showMergeExample();</script><script type="x/on-exit">hideMergeExample();</script><div id="merge-ex1"></div><div id="merge-ex2" class="el"></div><div id="merge-ex3" class="el"></div><div class="note"><p>There&#39;s <code>merge()</code>, which grabs events from both streams. Here we&#39;ve got a stream of red A&#39;s
+and a stream of blue B&#39;s, and <code>merge</code> creates a new stream with all events on it. This is
+useful for instance if you have a search box with a button next to it. If you want to create
+a stream of enter key presses and button clicks, <code>merge</code> is your function.</p>
+</div><div class="el"> <div style="width:100%;" class="ui small action input"><input type="text" placeholder="Enter search term"><div class="orange ui button">Search</div></div><div class="code"><pre>$('search-field').asEventStream('keyup')
+  .filter(x =&gt; x.keyCode === 13)
+  .merge( $('#search-btn').asEventStream('click') )
+  .onValue(search);</pre></div></div></div><div class="el"><h5><code>.combine()</code></h5><script type="x/on-enter">showCombineExample();</script><script type="x/on-exit">hideCombineExample();</script><div id="combine-ex1"></div><div id="combine-ex2" class="el"></div><div id="combine-ex3" class="el"></div><div class="note"><p>There&#39;s also <code>combine()</code>, which allows you to run a function on the latest event from each
+stream to create your events. Here it&#39;s grabbing the color from the first stream and the
+number from the second.</p>
+<p>I&#39;m not going to bore you all with the <em>entire</em> API here, but there&#39;s one higher-level 
+method you need to understand if you&#39;re going
+to do anything useful with Bacon: <code>flatMap()</code>. <code>flatMap()</code> takes a stream where each
+event is itself a stream, and puts all the values from all the streams it sees onto
+a single stream. I know that sounds a little cryptic, so here&#39;s an example.</p>
+</div></div><div class="el"><h5><code>.flatMap()</code></h5><script type="x/on-enter">showFlatMapExample();</script><script type="x/on-exit">hideFlatMapExample();</script><div id="flatmap-ex-urls"></div><div class="note"><p>Suppose we&#39;re getting URLs somehow---user input, some automated event
+perhaps, it doesn&#39;t matter.</p>
+</div><div class="el"><!--#flatmap-ex-ajax-streams--><center style="width:100%;"><img src="./img/metastream.png"></center><div class="note"><p>We take these, and we map each URL to an AJAX call. An AJAX call is a perfect example
+of why a stream is a promise with added functionality. You make the request, and what
+you receive back is a representation of a future potential for response or error.
+Bacon actually has a utility function that converts a promise into a Bacon stream, so
+you can use it almost without thinking.</p>
+<p>I could have done this example as an animation like the others as well, but frankly I
+couldn&#39;t get it to look right with CSS, so here&#39;s a static image.</p>
+<p>You can see here that each URL has been mapped to a stream. I&#39;ve just drawn the AJAX
+streams as arrows here, since it would get way out of control if I tried to actually
+make and animate streams within the events.</p>
+</div></div><div class="el"><div id="flatmap-ex-ajax-flat"></div><div class="note"><p>Finally, we use <code>flatMap</code> to take all our replies and flatten them into one stream.
+This is how you would generate a stream of weather updates, for instance, like I
+showed earlier.</p>
+</div></div></div><div class="el"><code><pre style="text-align:center;">map() filter() reduce() scan() 
+take() diff()
+flatMap() flatMapLatest()
+delay() throttle() bufferingThrottle()</pre></code><div class="note"><p>All this vocabulary---<code>map</code>, <code>filter</code>, <code>merge</code>, <code>flatMap</code>, and friends---makes up
+almost a whole new language in its own right, with its own control flow. The fact that you have this new control
+flow means you have to fundamentally attack your problems in a different way. Naturally, this is one reason why
+you may want to consider <em>not</em> using FRP. It&#39;s got a steep initial learning curve. Because the streams are
+immutable, you have to get away from the idea of variables and focus more on events. It&#39;s awesome once you&#39;ve
+mastered the basic concepts, but until then it sucks a bit. I can compare it to learning Vim or Emacs---you&#39;re
+going to go through a period of really horrible non-productivity while you&#39;re learning, but then once you&#39;ve
+paid your dues you gain these superpowers.</p>
+<p>A side effect of this is that you also have to learn the vocabulary. If you sit down and read through the
+documentation a couple of times, you&#39;ll get a good feel for the types of things Bacon does and does not do.
+Again, to compare it to Underscore: when I was learning Underscore, I&#39;d think of a function like <code>every()</code> or
+<code>any()</code> that just seemed like it was the &quot;kind of function&quot; that Underscore &quot;would have&quot;, and I&#39;d check the
+docs and sure enough I&#39;d find it. Bacon has the same kind of thing where you get a feel for it and you learn
+the types of functions that Bacon might provide. I guess, to stick with the theme of the conference, you could
+say that Bacon has a flavor.</p>
+<p>Now, pure functional programming is great if you&#39;re an academic, but ultimately you really do need to have some
+effect on the real world. &rarr;</p>
+</div></div><div class="el"><center style="position:fixed;top:0;bottom:0;left:0;right:0;vertical-align:middle;"><blockquote class="twitter-tweet" lang="en"><p>This is your reminder that the DOM is actually a giant, mutable, global variable in the middle of your program. Act accordingly.</p>&mdash; Marco Rogers (@polotek) <a href="https://twitter.com/polotek/status/543590973846999040">December 13, 2014</a></blockquote>
+<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script></center><div class="note"><p>&rarr; As the joke goes, the reason pure functional programs have no global effects is
+because nobody runs them. As a result &rarr;</p>
+</div></div><div data-body-class="dark" class="el"><h4>The Great Divide</h4><table style="width:100%;"><tr><td style="width:50%;border-right:1px solid white;"><h5>Bacon streams</h5></td><td style="width:50%;"><h5>Backbone</h5></td></tr></table><div class="note"><p>&rarr; you need to have some place in your application where you stop using functional programming and start
+having some sort of global state. By far, the easiest place to do this division is to have Bacon.js handle
+internals, and to have Backbone models keep track of their own state. Bacon becomes this sort of tucked-away
+plumbing, and your Backbone models simply work.</p>
+<p>I&#39;m going to now go through a few recipes for combining Bacon with Backbone: some good, some bad. I&#39;m starting
+off with the bad one.</p>
+</div></div><div id="bb-stream-slide" class="el"><script type="x/on-enter">Bacon.interval(2500, 'Backbone.Model')
+  .name('stream of models')
+  .asBubbleStream({element:'#model-stream'});</script><script type="x/on-exit">$('#bb-stream-slide .stream').html('');</script><div id="model-stream"></div><div class="note"><p>One of the simplest is to use a stream of models to update a View. This is honestly a little insulting to
+Backbone. You&#39;ve got these rich models which know things about themselves and can update themselves on the
+server, and here they&#39;re performing the same essential task as a plain JavaScript hash could. A better
+way is to...</p>
+</div></div><div class="el"><div id="model-event-stream"></div><script type="x/on-enter">Bacon.interval(2500, 'change')
+  .name('model.asEventStream("change")')
+  .asBubbleStream({element:'#model-event-stream'})</script><div class="note"><p>...use one model, and passing events to your View. This is another dead-simple model,
+and probably most familiar to those of you who use...</p>
+</div><div class="el"><code><pre>model.on('change', () =&gt; view.render(model.toJSON()))</pre></code><div class="note"><p>...something like this. The Bacon version of that is this:</p>
+</div></div><div class="el"><code><pre>model.asEventStream('change')
+  .onValue( () =&gt; view.render(model.toJSON()))</pre></code><div class="note"><p>This is useful for updating your views, but it&#39;s also useful if you have multiple people pontentially editing
+a resource and you want to prevent conflicts. If instead of updating a view, you want to sync with a server,
+you can send these change events. If the server is receiving change events from multiple users, then you can
+decide at the server level how to resolve any conflicts and send the results back out to the users.</p>
+<p>In the context of the previous talk, you could actually even write your events to localStorage during any
+period when your app is offline. When your app reconnects with the server, it can just send up all the events
+from localStorage, and the server can decide what to do about conflicts at that point.</p>
+<p>Or, to avoid re-rendering your entire view when you don&#39;t have to, maybe when you see an
+update you perform a jQuery selection and only update a particular portion of your view. 
+You can replace that with this:</p>
+</div></div><div class="el"><div id="model-event-field-stream"></div><script type="x/on-enter">Bacon.repeatedly(2500, ['foo','bar','baz'])
+  .name('model.asEventStream("change:fieldname")')
+  .asBubbleStream({element:'#model-event-field-stream'})</script><code><pre>model.asEventStream('change:name')
+  .onValue( () =&gt; view.$('.name').text(model.get('name')))</pre></code><div class="note"><p>This gives you really fine-grained control over your updates, and you can render only the
+parts of your view that have changed.</p>
+<p>Now, these examples in and of themselves are fairly useless. The power comes when you want
+to compose them or modify them. If you already have your application running on streams,
+it becomes trivial to change the way the streams flow through your application.</p>
+</div></div></div><div class="el"><table style="width:100%;"><tr><td style="width:50%;"><h5>Client-side</h5><code><pre>socket = io();
+model = new Thing();
+
+model.asEventStream('change').onValue(function(model){
+  socket.emit('change', model.changed);
+});
+socket.on('change', function(delta){
+  model.set(delta, {silent:true});
+});</pre></code></td><td style="width:50%;"><h5>Server-side</h5><code><pre>io = require('socket.io')(server)
+
+io.on('connection', function(socket){
+  socket.on('change', function(delta){
+    io.emit('delta');
+  });
+});</pre></code></td></tr></table><div class="note"><p>One of the coolest things you can do is incorporate streams with websockets. </p>
+</div></div><div data-body-class="dark" class="el"><div class="note">Ok. Let's make an app.</div></div><div data-body-class="dark" class="el"><h2>Chat server API</h2><p><ul>
+<li><strong>GET</strong> <code>/api/messages?since=&lt;timestamp&gt;</code> -- fetches messages sent to the server since the given time</li>
+<li><strong>POST</strong> <code>/api/message</code> <code>{message:&lt;message&gt;}</code> -- post a message</li>
+</ul>
+</p><div class="note"><p>Suppose you&#39;ve got an API like this one that&#39;s already been written. In reality, WebSockets
+would be the way to go, but for the sake of example, our app is going to work by polling.
+Also, our chat app is just going to be one big chat room for the sake of simplicity.</p>
+</div></div><div class="el"><script></script><code id="chat-thread"><pre>ChatThread = Backbone.Collection.extend({
+  initialize: function() {<span id="init-hilite-1">
+    this.lastSync = this.asEventStream('request')
+      .scan(0, () =&gt; + new Date());</span><span id="init-hilite-2">
+    this.poll = Bacon.interval(2000);</span><span id="init-hilite-3">
+    return this.lastSync
+      .sampledBy(this.poll)</span><span id="init-hilite-4">
+      .map(function(time) {
+        return "/api/messages?since=" + time;
+      })</span><span id="init-hilite-5">.flatMap( (url) =&gt; {
+        this.trigger('request');
+        return Bacon.fromPromise($.getJSON(url));
+      })</span><span id="init-hilite-6">.map(function(messages) {
+        return messages.map(function(json) {
+        return new Message(json);
+      });
+    })</span><span id="init-hilite-7">.assign(this, 'push');</span>
+  }
+});</pre></code><div class="note"></div><div class="el"><script type="x/on-enter">$('#chat-box').slideDown();
+var chatThread = new ChatThread();
+var view = new ChatThreadView({collection:chatThread});
+$('#chat-box').append(view.$el);
+$('#chat-box').append((new EntryView()).render().$el)</script></div></div><div class="el"><code><pre>Message = Backbone.Model.extend({
+  send: function() {
+    return $.post('/api/message', {message:this.get('content')});
+  }
+});</pre></code><div class="note">Here's our Message model. It's very simple; it's only got a `send` function hard-coded into
+it. I'd use the Backbone methods if this were a CRUD app, but a chat server isn't quite
+amenable to a CRUD model.</div></div><div class="el"><h5>Meanwhile, in our View...</h5><code><pre>var keyup = $('#input-field').asEventStream('keyup');
+var clicks = $('#send-button')
+keyup.filter(x =&gt; x===13)
+  .merge(clicks)
+  .onValue(() =&gt; this.message.send())</pre></code></div><div class="el"><code><pre>ChatThread = Backbone.Collection.extend
+  initialize: -&gt;
+    @lastSync = @asEventStream('request')
+      .scan 0, -&gt; +new Date()
+    @poll = Bacon.interval 5000
+    @lastSync.sampledBy @poll
+      .map (time) -&gt; "/api/messages?since=#{time}"
+      .flatMap (url) -&gt;
+        Bacon.fromPromise $.getJSON(url)
+      .flatMap (messages) -&gt;
+        Bacon.fromArray messages.map (json) -&gt;
+          new Message(json)
+      .assign @, 'push'</pre></code></div><div class="el"><h5>Further reading</h5><div class="el"><h5><a href="https://gist.github.com/staltz/868e7e9bc2a7b8c1f754">The intro to Reactive Programming you've been missing</a></h5><div class="note">"The intro to Reactive Programming you've been missing" is a gist that explains from the 
+ground up what FRP is in straightforward language. </div></div><div class="el"><h5><a href="http://baconjs.github.io">BaconJS documentation</a></h5><div class="note">The BaconJS documentation, of course, is a great place to look. There are a handful of examples
+of most methods, and the homepage has two fully-working examples that give a really good idea
+of how to use all these methods in conjunction with one another.</div></div><div class="el"><h5><a href="http://reactive-extensions.github.io/RxJS/">RxJS</a></h5><div class="note"><p>RxJS is another implementation of FRP, and the one that the Intro to Reactive Programming
+I&#39;ve listed above uses for its examples.</p>
+</div></div><div class="el"><h5><a href="http://elm-lang.org/">Elm</a></h5><h5><a href="https://github.com/matz/streem">Streem</a></h5><div class="note"><p>Elm is a little language designed entirely around functional reactive programming. Elm
+gives you these extremely short ways of writing functional reactive programs that compile
+to JavaScript and run in the browser. Some of the examples are almost as hard to read as 
+Haskell programs, but they&#39;re very beautiful little programs.</p>
+</div></div><div class="el"><h5><a href="https://github.com/jlongster/js-csp">js-csp</a></h5><div class="note"><p>Finally, js-csp is a representative of another wildly different form of event handling.
+It implements the communicating sequential processes paradigm, which looks a lot like
+Goroutines, if anyone&#39;s played around with Google&#39;s Go language. I thought I&#39;d include it
+here in case any of you have already decided you don&#39;t like functional reactive and would
+like to see what other directions you can explore for event handling.</p>
+<p>That&#39;s the whole presentation. I hope I&#39;ve given you all a good overview of BaconJS,
+how it plays nicely with Backbone, why you may or may not want to use it, and how to use
+it. If anyone has any questions now, I&#39;ll be glad to take them.</p>
+</div></div></div><div class="shows-over">End of presentation.</div><div style="display:none;" id="chat-box" class="ui segment"><div class="ui top attached label">Chat thread</div><!--.ui.bottom.attached.label.field(style="padding:0;").ui.small.action.input(style="width:100%;")
+  input(type="text", placeholder="Type your message")
+  .primary.ui.button Send
+--></div><script src="./js/vendor/Bacon.js"></script><script src="./js/vendor/underscore.js"></script><script src="./js/vendor/backbone.js"></script><script src="./js/backbone.eventstreams.js"></script><script src="./js/keychar.js"></script><script src="./js/bubbles.js"></script><script src="./js/prez.js"></script><script src="./js/chat.js"></script><script>if(document.body.requestFullScreen){
+  document.body.requestFullscreen();
+}</script></body></html>
